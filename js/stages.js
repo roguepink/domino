@@ -225,7 +225,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 4  ジグザグ広場(86 m) まっすぐ走ると 57.3 m で 追いつかれる
-  { id: 4, name: "ジグザグ広場", world: 1, stock: 135,
+  { id: 4, name: "ジグザグ広場", world: 1, stock: 155,
     wave: { delay: 1.2, v0: 5.0, acc: 0.2, max: 7.0 },
     tip: "ジグザグに 走ると 列が 長くなって 波が おくれるよ。でも ドミノを たくさん 使う",
     map: [
@@ -321,7 +321,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 5  木の あいだ(77 m) まっすぐ走ると 50.7 m で 追いつかれる
-  { id: 5, name: "木の あいだ", world: 1, stock: 65,
+  { id: 5, name: "木の あいだ", world: 1, stock: 60,
     wave: { delay: 1.2, v0: 5.0, acc: 0.26, max: 7.0 },
     map: [
       '.........',   // ゴール
@@ -495,7 +495,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 7  ドーンと 巨大ドミノ(52 m) まっすぐ走ると 40.1 m で 追いつかれる
-  { id: 7, name: "ドーンと 巨大ドミノ", world: 1, stock: 150,
+  { id: 7, name: "ドーンと 巨大ドミノ", world: 1, stock: 155,
     wave: { delay: 1.2, v0: 5.0, acc: 0.5, max: 7.0 },
     nearGoal: 1,
     tip: "巨大ドミノの そばを 通ると ドーンと たおれるよ",
@@ -792,7 +792,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 10  積み木の塔(142 m) まっすぐ走ると 76.1 m で 追いつかれる
-  { id: 10, name: "積み木の塔", world: 1, stock: 210,
+  { id: 10, name: "積み木の塔", world: 1, stock: 215,
     wave: { delay: 1.2, v0: 4.76, acc: 0.15, max: 7.0 },
     map: [
       '.........',   // ゴール
@@ -943,7 +943,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 11  数の門(53 m) まっすぐ走ると 49.9 m で 追いつかれる
-  { id: 11, name: "数の門", world: 2, stock: 110,
+  { id: 11, name: "数の門", world: 2, stock: 105,
     wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
     nearGoal: 2,
     tip: "「+20」「×2」の門で ドミノが ふえる。「-10」は ワナ!",
@@ -1016,7 +1016,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 12  ダッシュ板(55 m) まっすぐ走ると 49.9 m で 追いつかれる
-  { id: 12, name: "ダッシュ板", world: 2, stock: 100,
+  { id: 12, name: "ダッシュ板", world: 2, stock: 90,
     wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
     nearGoal: 1,
     tip: "青い 矢印の板(ダッシュ板)で 速くなる。波を ひきはなそう",
@@ -1086,7 +1086,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 13  ぬかるみ(63 m) まっすぐ走ると 49.9 m で 追いつかれる
-  { id: 13, name: "ぬかるみ", world: 2, stock: 75,
+  { id: 13, name: "ぬかるみ", world: 2, stock: 125,
     wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
     tip: "ぬかるみでは おそくなる。ジグザグに 走って 波を おくらせよう",
     map: [
@@ -1163,7 +1163,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 14  おもちゃの 積み木(63 m) まっすぐ走ると 49.9 m で 追いつかれる
-  { id: 14, name: "おもちゃの 積み木", world: 2, stock: 60,
+  { id: 14, name: "おもちゃの 積み木", world: 2, stock: 65,
     wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
     map: [
       '.........',   // ゴール
@@ -1241,7 +1241,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 15  ぬかるみの 迷路(76 m) まっすぐ走ると 49.9 m で 追いつかれる
-  { id: 15, name: "ぬかるみの 迷路", world: 2, stock: 150,
+  { id: 15, name: "ぬかるみの 迷路", world: 2, stock: 155,
     wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
     map: [
       '.........',   // ゴール
@@ -1330,7 +1330,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 16  ×2 の かけひき(82 m) まっすぐ走ると 49.9 m で 追いつかれる
-  { id: 16, name: "×2 の かけひき", world: 2, stock: 60,
+  { id: 16, name: "×2 の かけひき", world: 2, stock: 50,
     wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
     map: [
       '.........',   // ゴール
@@ -1431,7 +1431,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 17  おもちゃ パレード(57 m) まっすぐ走ると 42.4 m で 追いつかれる
-  { id: 17, name: "おもちゃ パレード", world: 2, stock: 100,
+  { id: 17, name: "おもちゃ パレード", world: 2, stock: 95,
     wave: { delay: 1.17, v0: 5.0, acc: 0.392, max: 7.05 },
     nearGoal: 1,
     map: [
@@ -1611,7 +1611,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 19  ダッシュ サーキット(101 m) まっすぐ走ると 51.8 m で 追いつかれる
-  { id: 19, name: "ダッシュ サーキット", world: 2, stock: 135,
+  { id: 19, name: "ダッシュ サーキット", world: 2, stock: 140,
     wave: { delay: 1.17, v0: 5.0, acc: 0.242, max: 7.05 },
     map: [
       '.........',   // ゴール
@@ -1727,7 +1727,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 20  おもちゃの 汽車(122 m) まっすぐ走ると 71.5 m で 追いつかれる
-  { id: 20, name: "おもちゃの 汽車", world: 2, stock: 75,
+  { id: 20, name: "おもちゃの 汽車", world: 2, stock: 70,
     wave: { delay: 1.17, v0: 4.96, acc: 0.132, max: 7.05 },
     map: [
       '.........',   // ゴール
@@ -1867,7 +1867,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 21  スイッチと 門(46 m) まっすぐ走ると 48.2 m で 追いつかれる
-  { id: 21, name: "スイッチと 門", world: 3, stock: 130,
+  { id: 21, name: "スイッチと 門", world: 3, stock: 135,
     wave: { delay: 1.14, v0: 5.0, acc: 0.274, max: 7.1 },
     nearGoal: 1,
     tip: "ドミノを 黄色い スイッチの上に ならべよう。波が スイッチを たおすと 門が あくよ",
@@ -2412,7 +2412,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 28  からくり 大迷路(106 m) まっすぐ走ると 56.9 m で 追いつかれる
-  { id: 28, name: "からくり 大迷路", world: 3, stock: 240,
+  { id: 28, name: "からくり 大迷路", world: 3, stock: 250,
     wave: { delay: 1.14, v0: 5.0, acc: 0.194, max: 7.1 },
     map: [
       '.........',   // ゴール
@@ -2531,7 +2531,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 29  ベルトの 嵐(120 m) まっすぐ走ると 60.0 m で 追いつかれる
-  { id: 29, name: "ベルトの 嵐", world: 3, stock: 300,
+  { id: 29, name: "ベルトの 嵐", world: 3, stock: 305,
     wave: { delay: 1.14, v0: 5.0, acc: 0.174, max: 7.1 },
     map: [
       '.........',   // ゴール
@@ -2957,7 +2957,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 33  うき島の 小道(55 m) まっすぐ走ると 47.5 m で 追いつかれる
-  { id: 33, name: "うき島の 小道", world: 4, stock: 125,
+  { id: 33, name: "うき島の 小道", world: 4, stock: 175,
     wave: { delay: 1.11, v0: 5.0, acc: 0.276, max: 7.15 },
     nearGoal: 2,
     map: [
@@ -3022,7 +3022,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 34  空の 工場(65 m) まっすぐ走ると 47.5 m で 追いつかれる
-  { id: 34, name: "空の 工場", world: 4, stock: 115,
+  { id: 34, name: "空の 工場", world: 4, stock: 105,
     wave: { delay: 1.11, v0: 5.0, acc: 0.276, max: 7.15 },
     map: [
       '.........',   // ゴール
@@ -3100,7 +3100,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 35  雲の上の ぬかるみ(74 m) まっすぐ走ると 47.5 m で 追いつかれる
-  { id: 35, name: "雲の上の ぬかるみ", world: 4, stock: 140,
+  { id: 35, name: "雲の上の ぬかるみ", world: 4, stock: 130,
     wave: { delay: 1.11, v0: 5.0, acc: 0.276, max: 7.15 },
     map: [
       '.........',   // ゴール
@@ -3446,7 +3446,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 39  天空の 一本道(96 m) まっすぐ走ると 47.5 m で 追いつかれる
-  { id: 39, name: "天空の 一本道", world: 4, stock: 160,
+  { id: 39, name: "天空の 一本道", world: 4, stock: 150,
     wave: { delay: 1.11, v0: 5.0, acc: 0.276, max: 7.15 },
     map: [
       '.........',   // ゴール
@@ -3555,7 +3555,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 40  気球(127 m) まっすぐ走ると 70.7 m で 追いつかれる
-  { id: 40, name: "気球", world: 4, stock: 190,
+  { id: 40, name: "気球", world: 4, stock: 175,
     wave: { delay: 1.11, v0: 4.8, acc: 0.156, max: 7.15 },
     map: [
       '.........',   // ゴール
@@ -3821,7 +3821,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 43  転がる玉(54 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 43, name: "転がる玉", world: 5, stock: 130,
+  { id: 43, name: "転がる玉", world: 5, stock: 135,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     nearGoal: 2,
     tip: "転がる玉は ジャンプで こえられるよ",
@@ -3892,7 +3892,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 44  ふりこ ハンマー(52 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 44, name: "ふりこ ハンマー", world: 5, stock: 115,
+  { id: 44, name: "ふりこ ハンマー", world: 5, stock: 130,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     nearGoal: 2,
     tip: "ふりこ ハンマーは ゆれる タイミングを 見て 通ろう",
@@ -3961,7 +3961,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 45  森の 工場(66 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 45, name: "森の 工場", world: 5, stock: 150,
+  { id: 45, name: "森の 工場", world: 5, stock: 155,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     map: [
       '.........',   // ゴール
@@ -4043,7 +4043,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 46  あぶない 空中散歩(70 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 46, name: "あぶない 空中散歩", world: 5, stock: 155,
+  { id: 46, name: "あぶない 空中散歩", world: 5, stock: 160,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     map: [
       '.........',   // ゴール
@@ -4190,7 +4190,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 48  のこぎり 谷(78 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 48, name: "のこぎり 谷", world: 5, stock: 135,
+  { id: 48, name: "のこぎり 谷", world: 5, stock: 140,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     map: [
       '.........',   // ゴール
@@ -4288,7 +4288,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 49  トゲトゲの 森(94 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 49, name: "トゲトゲの 森", world: 5, stock: 170,
+  { id: 49, name: "トゲトゲの 森", world: 5, stock: 180,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     map: [
       '.........',   // ゴール
@@ -4401,7 +4401,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 50  大きな木(138 m) まっすぐ走ると 75.3 m で 追いつかれる
-  { id: 50, name: "大きな木", world: 5, stock: 260,
+  { id: 50, name: "大きな木", world: 5, stock: 255,
     wave: { delay: 1.08, v0: 4.6, acc: 0.168, max: 7.2 },
     map: [
       '.........',   // ゴール
@@ -4617,7 +4617,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 52  強い 風(49 m) まっすぐ走ると 44.6 m で 追いつかれる
-  { id: 52, name: "強い 風", world: 6, stock: 120,
+  { id: 52, name: "強い 風", world: 6, stock: 130,
     wave: { delay: 1.05, v0: 5.0, acc: 0.3, max: 7.25 },
     nearGoal: 2,
     tip: "強い 風が 横から ふくよ。風に まけずに まっすぐ 走ろう",
@@ -4682,7 +4682,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 53  吹雪の がけ(54 m) まっすぐ走ると 44.6 m で 追いつかれる
-  { id: 53, name: "吹雪の がけ", world: 6, stock: 130,
+  { id: 53, name: "吹雪の がけ", world: 6, stock: 140,
     wave: { delay: 1.05, v0: 5.0, acc: 0.3, max: 7.25 },
     nearGoal: 2,
     map: [
@@ -4823,7 +4823,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 55  雪の 森(66 m) まっすぐ走ると 44.6 m で 追いつかれる
-  { id: 55, name: "雪の 森", world: 6, stock: 145,
+  { id: 55, name: "雪の 森", world: 6, stock: 150,
     wave: { delay: 1.05, v0: 5.0, acc: 0.3, max: 7.25 },
     map: [
       '.........',   // ゴール
@@ -5052,7 +5052,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 58  なだれ坂(98 m) まっすぐ走ると 47.7 m で 追いつかれる
-  { id: 58, name: "なだれ坂", world: 6, stock: 190,
+  { id: 58, name: "なだれ坂", world: 6, stock: 195,
     wave: { delay: 1.05, v0: 5.0, acc: 0.26, max: 7.25 },
     map: [
       '.........',   // ゴール
@@ -5429,7 +5429,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 61  爆弾ドミノ(50 m) まっすぐ走ると 43.2 m で 追いつかれる
-  { id: 61, name: "爆弾ドミノ", world: 7, stock: 155,
+  { id: 61, name: "爆弾ドミノ", world: 7, stock: 175,
     wave: { delay: 1.02, v0: 5.0, acc: 0.312, max: 7.3 },
     nearGoal: 2,
     tip: "爆弾の そばに ドミノを ならべよう。波が 爆弾に とどくと かべが こわれるよ",
@@ -5490,7 +5490,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 62  音のドミノ(57 m) まっすぐ走ると 43.2 m で 追いつかれる
-  { id: 62, name: "音のドミノ", world: 7, stock: 140,
+  { id: 62, name: "音のドミノ", world: 7, stock: 165,
     wave: { delay: 1.02, v0: 5.0, acc: 0.312, max: 7.3 },
     nearGoal: 2,
     melody: [0, 0, 7, 7, 9, 9, 7, 5, 5, 4, 4, 2, 2, 0, 7, 7, 5, 5, 4, 4, 2, 7, 7, 5, 5, 4, 4, 2],
@@ -5559,7 +5559,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 63  2列の門(59 m) まっすぐ走ると 43.2 m で 追いつかれる
-  { id: 63, name: "2列の門", world: 7, stock: 190,
+  { id: 63, name: "2列の門", world: 7, stock: 195,
     wave: { delay: 1.02, v0: 5.0, acc: 0.312, max: 7.3 },
     nearGoal: 2,
     tip: "2列の門を くぐると ドミノが 2列に なる。はなやかだけど 2本ずつ 使うよ",
@@ -5633,7 +5633,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 64  お祭りの 屋台(68 m) まっすぐ走ると 43.2 m で 追いつかれる
-  { id: 64, name: "お祭りの 屋台", world: 7, stock: 150,
+  { id: 64, name: "お祭りの 屋台", world: 7, stock: 165,
     wave: { delay: 1.02, v0: 5.0, acc: 0.312, max: 7.3 },
     melody: [4, 2, 0, 2, 4, 4, 4, 2, 2, 2, 4, 7, 7],
     map: [
@@ -5716,7 +5716,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 65  花火の 工場(84 m) まっすぐ走ると 45.3 m で 追いつかれる
-  { id: 65, name: "花火の 工場", world: 7, stock: 230,
+  { id: 65, name: "花火の 工場", world: 7, stock: 255,
     wave: { delay: 1.02, v0: 5.0, acc: 0.282, max: 7.3 },
     melody: [0, 2, 4, 5, 4, 2, 0, 4, 5, 7, 9, 7, 5, 4],
     map: [
@@ -5813,7 +5813,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 66  おばけ屋敷(76 m) まっすぐ走ると 43.2 m で 追いつかれる
-  { id: 66, name: "おばけ屋敷", world: 7, stock: 185,
+  { id: 66, name: "おばけ屋敷", world: 7, stock: 180,
     wave: { delay: 1.02, v0: 5.0, acc: 0.312, max: 7.3 },
     melody: [7, 9, 7, 5, 4, 5, 7, 2, 4, 5, 4, 5, 7],
     map: [
@@ -5975,7 +5975,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 68  爆弾の 迷路(117 m) まっすぐ走ると 54.2 m で 追いつかれる
-  { id: 68, name: "爆弾の 迷路", world: 7, stock: 310,
+  { id: 68, name: "爆弾の 迷路", world: 7, stock: 305,
     wave: { delay: 1.02, v0: 4.92, acc: 0.212, max: 7.3 },
     melody: [0, 2, 4, 0, 0, 2, 4, 0],
     map: [
@@ -6232,7 +6232,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 70  打ち上げ花火(144 m) まっすぐ走ると 74.1 m で 追いつかれる
-  { id: 70, name: "打ち上げ花火", world: 7, stock: 285,
+  { id: 70, name: "打ち上げ花火", world: 7, stock: 275,
     wave: { delay: 1.02, v0: 4.44, acc: 0.192, max: 7.3 },
     melody: [0, 0, 7, 7, 9, 9, 7, 5, 5, 4, 4, 2, 2, 0, 7, 7, 5, 5, 4, 4, 2, 7],
     map: [
@@ -6393,7 +6393,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 71  しずむ床(46 m) まっすぐ走ると 42.5 m で 追いつかれる
-  { id: 71, name: "しずむ床", world: 8, stock: 130,
+  { id: 71, name: "しずむ床", world: 8, stock: 135,
     wave: { delay: 0.99, v0: 5.0, acc: 0.314, max: 7.35 },
     nearGoal: 2,
     tip: "しずむ床は ときどき 水に しずむ。しずむ前に わたろう(ジャンプも 使えるよ)",
@@ -6649,7 +6649,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 75  海の 森(67 m) まっすぐ走ると 42.5 m で 追いつかれる
-  { id: 75, name: "海の 森", world: 8, stock: 145,
+  { id: 75, name: "海の 森", world: 8, stock: 140,
     wave: { delay: 0.99, v0: 5.0, acc: 0.314, max: 7.35 },
     map: [
       '.........',   // ゴール
@@ -7490,7 +7490,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 84  遺跡の からくり(82 m) まっすぐ走ると 43.8 m で 追いつかれる
-  { id: 84, name: "遺跡の からくり", world: 9, stock: 175,
+  { id: 84, name: "遺跡の からくり", world: 9, stock: 180,
     wave: { delay: 0.96, v0: 5.0, acc: 0.286, max: 7.4 },
     map: [
       '.........',   // ゴール
@@ -7678,7 +7678,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 86  闇の 雪原(88 m) まっすぐ走ると 43.2 m で 追いつかれる
-  { id: 86, name: "闇の 雪原", world: 9, stock: 215,
+  { id: 86, name: "闇の 雪原", world: 9, stock: 225,
     wave: { delay: 0.96, v0: 5.0, acc: 0.296, max: 7.4 },
     map: [
       '.........',   // ゴール
@@ -7849,7 +7849,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 88  石像の 回廊(130 m) まっすぐ走ると 56.0 m で 追いつかれる
-  { id: 88, name: "石像の 回廊", world: 9, stock: 270,
+  { id: 88, name: "石像の 回廊", world: 9, stock: 275,
     wave: { delay: 0.96, v0: 4.7, acc: 0.236, max: 7.4 },
     map: [
       '.........',   // ゴール
@@ -8157,7 +8157,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 90  石像(179 m) まっすぐ走ると 86.7 m で 追いつかれる
-  { id: 90, name: "石像", world: 9, stock: 415,
+  { id: 90, name: "石像", world: 9, stock: 420,
     wave: { delay: 0.96, v0: 3.92, acc: 0.216, max: 7.4 },
     map: [
       '.........',   // ゴール
@@ -8357,7 +8357,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 91  ドミノ城へ ようこそ(66 m) まっすぐ走ると 44.6 m で 追いつかれる
-  { id: 91, name: "ドミノ城へ ようこそ", world: 10, stock: 160,
+  { id: 91, name: "ドミノ城へ ようこそ", world: 10, stock: 150,
     wave: { delay: 0.93, v0: 5.0, acc: 0.268, max: 7.45 },
     nearGoal: 2,
     tip: "ドミノ城へ ようこそ! これまでの しかけが ぜんぶ 出てくるよ",
@@ -8532,7 +8532,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 93  城の 門(81 m) まっすぐ走ると 44.6 m で 追いつかれる
-  { id: 93, name: "城の 門", world: 10, stock: 230,
+  { id: 93, name: "城の 門", world: 10, stock: 215,
     wave: { delay: 0.93, v0: 5.0, acc: 0.268, max: 7.45 },
     map: [
       '.........',   // ゴール
@@ -8851,7 +8851,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 96  王さまの 迷路(136 m) まっすぐ走ると 63.3 m で 追いつかれる
-  { id: 96, name: "王さまの 迷路", world: 10, stock: 365,
+  { id: 96, name: "王さまの 迷路", world: 10, stock: 375,
     wave: { delay: 0.93, v0: 4.48, acc: 0.228, max: 7.45 },
     map: [
       '.........',   // ゴール
@@ -9003,7 +9003,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 97  ドミノの 大広間(59 m) まっすぐ走ると 36.7 m で 追いつかれる
-  { id: 97, name: "ドミノの 大広間", world: 10, stock: 230,
+  { id: 97, name: "ドミノの 大広間", world: 10, stock: 225,
     wave: { delay: 0.93, v0: 5.0, acc: 0.408, max: 7.45 },
     nearGoal: 1,
     melody: [0, 2, 4, 5, 7, 9, 11, 12, 12, 11],
@@ -9077,7 +9077,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 98  城の 番人(142 m) まっすぐ走ると 59.4 m で 追いつかれる
-  { id: 98, name: "城の 番人", world: 10, stock: 325,
+  { id: 98, name: "城の 番人", world: 10, stock: 320,
     wave: { delay: 0.93, v0: 4.5, acc: 0.248, max: 7.45 },
     map: [
       '.........',   // ゴール
@@ -9239,7 +9239,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 99  さいごの 試練(156 m) まっすぐ走ると 60.6 m で 追いつかれる
-  { id: 99, name: "さいごの 試練", world: 10, stock: 370,
+  { id: 99, name: "さいごの 試練", world: 10, stock: 365,
     wave: { delay: 0.93, v0: 4.46, acc: 0.248, max: 7.45 },
     map: [
       '.........',   // ゴール
@@ -9414,7 +9414,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 100  ドミノ城(223 m) まっすぐ走ると 87.2 m で 追いつかれる
-  { id: 100, name: "ドミノ城", world: 10, stock: 125,
+  { id: 100, name: "ドミノ城", world: 10, stock: 175,
     wave: { delay: 0.93, v0: 3.8, acc: 0.228, max: 7.45 },
     melody: [4, 4, 5, 7, 7, 5, 4, 2, 0, 0, 2, 4, 4, 2, 2],
     map: [
