@@ -202,7 +202,7 @@ DOMINO.Game = (function () {
       try {
         // 動的 import は 古い端末だと ここで文法エラーになることがあるので Function で包む
         var imp = new Function('u', 'return import(u)');
-        imp('./js/render3d.js?v=' + (DOMINO.BUILD || 1)).then(function (m) {
+        imp(new URL('js/render3d.js?v=' + (DOMINO.BUILD || 1), document.baseURI).href).then(function (m) {
           var R = m && m.default;
           if (R && R.supported()) { useRenderer(R, '3d'); ok = true; }
         }).catch(function (e) { console.warn('3D が使えないので 2D で表示します', e && e.message); });
