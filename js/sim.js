@@ -471,6 +471,12 @@ DOMINO.Sim = (function () {
     this.inNear = near;
   };
 
+  // ゴールまで まっすぐ走ったときに いるドミノの数(画面の「たりる/たりない」の目安)
+  P.needToGoal = function () {
+    if (this.state !== 'run') return 0;
+    return Math.ceil(Math.max(0, this.level.goalZ + 0.5 - this.p.z) / C.SPACING * (this.p.twin > 0 ? 2 : 1));
+  };
+
   // 星: 1つ目 = クリア、2つ目 = 金のドミノ(★のマス)を全部、3つ目 = ギリギリを nearGoal 回
   P.starResult = function () {
     if (this.state !== 'clear') return 0;

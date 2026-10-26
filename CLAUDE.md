@@ -50,6 +50,7 @@ sim.js に新しい仕掛けが要るときは、まとめ役に頼む(勝手に
 - `sim.score` `sim.stock` `sim.combo` `sim.stars`(取った金のドミノ) `sim.starsTotal` `sim.nearCount` `sim.cfg.nearGoal` `sim.progress` 0..1
 - 波の追い上げ: 波が `wave.far`(CONFIG.WAVE_FAR)より遠いと速くなる。面の後半ほど近くまで(WAVE_CLOSER)。ふだん 3m くらい後ろ
 - ギリギリ: 'near' = 波が 1.6m より近づいた(あぶない)、'escape' {n} = そこから にげきった(セーフ! ★3 の数 = sim.nearCount)。`sim.nearMul` 1|2|3 点の倍率
+- `sim.needToGoal()` ゴールまで まっすぐ走ったときに いるドミノの数(stock と くらべて たりる/たりない)
 - `sim.failHint` 負けの原因 'wall' | 'hit' | 'far' | ''。ドミノ0本で つなげなくなったら すぐ 'empty'
 - コースのはしは柵(かべ)。空の島 W4 と stage.edge:'open' だけ 穴
 - ゴースト(前の自分): `DOMINO.Game.ghost` = null か {path:[x,z,y,...], every:6, clear, maxZ, t}(sim.t が every*DT ごと)。出来事 'beatghost'、res.beatGhost
