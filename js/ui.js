@@ -36,7 +36,7 @@ DOMINO.HATS = [
   { id: 'crown', name: '王かん', cost: 240, ic: '👑' },
   { id: 'halo', name: '天使の わ', cost: 300, ic: '' }
 ];
-// save.js は 知らない項目を 読みこみで すてるので、ぼうしは べつの所にも 覚える(まとめ役が save.js に足したら そちらでも読める)
+// 前に べつの所(domino-hats-v1)に覚えた ぼうしを Save.data へ移す(今は save.js が hat / hats を覚える)
 (function () {
   var d = DOMINO.Save && DOMINO.Save.data; if (!d) return;
   var o = null;
@@ -104,8 +104,7 @@ DOMINO.UI = (function () {
   }
   function coinHTML(n) { return '<span class="coin"><i class="ico cn"></i>' + fmt(n) + '</span>'; }
   function saveHats() {
-    DOMINO.Save.write();
-    try { localStorage.setItem('domino-hats-v1', JSON.stringify({ hat: sv().hat, hats: sv().hats })); } catch (e) {}
+    DOMINO.Save.write();   // ぼうしは save.js が覚える(前の domino-hats-v1 は 起動のとき Save.data へ移すだけ)
   }
   function hatPreview(hat) {
     return '<span class="hatpv">' + domikun('') + '<span class="hat h-' + hat.id + '">' + (hat.ic || '') + '</span></span>';
@@ -287,7 +286,7 @@ DOMINO.UI = (function () {
   }
 
   // ---------- プレイ中 ----------
-  function hideHud() { R.hud.classList.remove('on'); R.edge.style.opacity = 0; R.tip.className = ''; if (R.warn) R.warn.classList.remove('on'); popQ = []; }
+  function hideHud() { R.hud.classList.remove('on'); R.edge.style.opacity = 0; R.tip.className = ''; if (R.warn) R.warn.classList.remove('on'); popQ = []; R.combo.className = 'combo'; R.pop.className = 'pop'; }
   function showHud(sim) {
     clearTimers();
     show('hud');

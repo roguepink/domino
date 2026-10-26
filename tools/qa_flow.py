@@ -94,7 +94,7 @@ def sc_flow(R, n):
     R.say("renderer", R.ev("DOMINO.Game.renderKind"), "start mem", R.ev("QA.mem()"))
     R.say("title play:", R.ev("QA.click('play')"), R.ev("QA.st()"))
     for k in range(n):
-        R.wait(250)
+        R.wait(600)   # ステージの前は 0.4秒 タップを受けない
         st = R.ev("QA.st()")
         if st["g"] != "intro":
             R.say("!! intro でない", st); break
