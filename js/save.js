@@ -11,7 +11,7 @@ DOMINO.Save = (function () {
   var KEY = (DOMINO.CONFIG && DOMINO.CONFIG.SAVE_KEY) || 'domino-save-v1';
   var def = function () {
     return { v: 1, stars: {}, best: {}, fails: {}, skipped: {}, coins: 0, skin: 'classic', skins: { classic: true }, hat: 'none', hats: { none: true },
-      settings: { sound: true, music: true, shake: true }, seenTips: {} };
+      settings: { sound: true, music: true, shake: true, hard: false }, seenTips: {} };
   };
   var data = def();
   try {
