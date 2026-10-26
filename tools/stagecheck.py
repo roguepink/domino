@@ -9,7 +9,7 @@
 
   表の見方:
     長さ   = スタートからゴールまでの行(m)。 時間 = ゴールまでの秒
-    波     = いちばん近づいた波(m)。小さいほど ハラハラ(1.6 未満 = ギリギリ)
+    波     = いちばん近づいた波(m)。小さいほど ハラハラ(1.6 未満 = ギリギリ)。ふだん = 波の距離の まん中の値(m)
     残り   = ドミノの残りの いちばん少なかった数。0 に近いほど 箱が大事
     金     = 取れた金のドミノ / 置いてある数。 ギリ = ギリギリの回数
     ★2 ★3 = 金ねらい・ギリギリねらいの ボットで ★2・★3 が取れたか(×の数字 = 取れた数)。--fast で とばす
@@ -162,7 +162,7 @@ async def run(a):
     srv.shutdown()
 
     # 表
-    head = ["番号", "名前", "長さ", "クリア", "時間", "波", "残り", "金", "ギリ", "★2", "★3", "調べ秒"]
+    head = ["番号", "名前", "長さ", "クリア", "時間", "波", "ふだん", "残り", "金", "ギリ", "★2", "★3", "調べ秒"]
     if a.rough:
         head.append("らく")
     rows = []
@@ -173,7 +173,7 @@ async def run(a):
         cleared += 1 if ok else 0
         cl = "○" if ok else "× " + str(r.get("why", "")) + f" z{r.get('z', 0)}/{r.get('goalZ', 0)}"
         row = [str(i), x["name"], str(r.get("goalZ", x["rows"])), cl, f"{r.get('time', 0):.1f}",
-               f"{r.get('minDanger', 0):.1f}", str(r.get("stockMin", "")),
+               f"{r.get('minDanger', 0):.1f}", f"{r.get('medDanger', 0):.1f}", str(r.get("stockMin", "")),
                f"{r.get('gold', 0)}/{r.get('goldTotal', 0)}", str(r.get("near", 0)),
                ("○" if r.get("goldMax", 0) >= max(1, r.get("goldTotal", 3)) else f"×{r.get('goldMax', 0)}") if "goldMax" in r else "-",
                ("○" if r.get("nearMax", 0) >= r.get("nearGoal", 3) else f"×{r.get('nearMax', 0)}") if "nearMax" in r else "-",

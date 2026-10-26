@@ -2,7 +2,7 @@
  *
  *   DOMINO.Bot.input(sim)          main が #auto のとき 1/60 秒ごとに呼ぶ。{steer, jump} を返す
  *   DOMINO.Bot.solve(stage, opts)  1面を最後まで遊んで結果を返す(tools/stagecheck.py が使う)
- *       → { clear, time(ゴールした秒), clearT(クリアの秒), minDanger(いちばん近づいた波 m), stockMin(ドミノの残りの最小),
+ *       → { clear, time(ゴールした秒), clearT(クリアの秒), minDanger(いちばん近づいた波 m), medDanger(ふだんの波の距離 m), stockMin(ドミノの残りの最小),
  *           gold(金のドミノ), near(ギリギリ回数), z(進んだ所), why(負けた理由), nodes(調べた数), ms, inputs }
  *       opts = { beam: 幅(32), every: 何コマごとに入力を変えるか(6 = 0.1秒), steers: [左右の強さ], gold: 金のドミノを取りにいく強さ(1),
  *                near: ギリギリを ねらう強さ(0 = ねらわない。1 にすると ★3 が取れるかを 調べられる),
@@ -329,7 +329,15 @@ DOMINO.Bot = (function () {
       for (var n = 0; n < 600 && probe.state === 'run'; n++) probe.step({ steer: 0 });
       if (probe.state === 'fail') why = probe.failReason;
     }
+    // ふだんの 波の距離(中央値): 道をもう一度 たどって 測る
+    var rp = fromSim ? fastClone(fromSim) : new DOMINO.Sim(stage), ds = [];
+    for (var g = 0; g < path.length && rp.state === 'run'; g++) {
+      for (var f2 = 0; f2 < o.every; f2++) { rp.step({ steer: path[g].s, jump: path[g].j === f2 }); if (rp.state === 'run' && rp.wave.started && rp.danger < 90) ds.push(rp.danger); }
+    }
+    ds.sort(function (a, b) { return a - b; });
+    var med = ds.length ? ds[Math.floor(ds.length / 2)] : 99;
     return {
+      medDanger: +med.toFixed(2),
       clear: !r.fail && s.state === 'clear',
       time: +(r.node.t * o.every * C.DT).toFixed(2),
       clearT: s ? +s.t.toFixed(2) : 0,

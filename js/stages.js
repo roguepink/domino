@@ -14,7 +14,7 @@ var DOMINO = window.DOMINO = window.DOMINO || {};
 DOMINO.STAGES = [
   // ---- 1  はじめの いっぽ(49 m)
   { id: 1, name: "はじめの いっぽ", world: 1, stock: 130,
-    wave: { delay: 1.4, v0: 4.3, acc: 0.08, max: 6.2, far: 7.0, closer: 5.2, catchup: 0.3 },
+    wave: { delay: 1.2, v0: 4.0, acc: 0.06, max: 6.0, far: 4.5, closer: 0.5, catchup: 0.8 },
     nearGoal: 1,
     tip: "走ると うしろに ドミノが ならぶよ。たおれる 波に つかまらないように ゴールまで にげよう!",
     map: [
@@ -74,7 +74,7 @@ DOMINO.STAGES = [
   },
   // ---- 2  はこで ふやそう(61 m)
   { id: 2, name: "はこで ふやそう", world: 1, stock: 60,
-    wave: { delay: 1.4, v0: 4.3, acc: 0.1, max: 6.4, far: 7.0, closer: 5.0, catchup: 0.3 },
+    wave: { delay: 1.2, v0: 4.1, acc: 0.07, max: 6.2, far: 4.5, closer: 0.6, catchup: 0.8 },
     nearGoal: 2,
     tip: "はこを とると ドミノが ふえるよ。ドミノが なくなると 負け!",
     map: [
@@ -146,7 +146,7 @@ DOMINO.STAGES = [
   },
   // ---- 3  かべを よけて(62 m)
   { id: 3, name: "かべを よけて", world: 1, stock: 130,
-    wave: { delay: 1.3, v0: 4.4, acc: 0.1, max: 6.6, far: 6.5, closer: 4.4, catchup: 0.35 },
+    wave: { delay: 1.2, v0: 4.2, acc: 0.08, max: 6.4, far: 4.4, closer: 0.8, catchup: 0.8 },
     nearGoal: 2,
     tip: "かべに ぶつかると 止まっちゃう。はやめに よけよう",
     map: [
@@ -219,7 +219,7 @@ DOMINO.STAGES = [
   },
   // ---- 4  ジグザグ ひろば(99 m) まっすぐ走ると 66.0 m で 追いつかれる
   { id: 4, name: "ジグザグ ひろば", world: 1, stock: 155,
-    wave: { delay: 1.2, v0: 5.0, acc: 0.15, max: 7.0 },
+    wave: { delay: 1.2, v0: 5.0, acc: 0.15, max: 7.0, far: 5.0, catchup: 0.6 },
     tip: "ジグザグに 走ると 波が おくれるよ。でも ドミノを たくさん つかうよ",
     map: [
       '.........',   // ゴール
@@ -327,8 +327,8 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 5  木の あいだ(87 m) まっすぐ走ると 54.7 m で 追いつかれる
-  { id: 5, name: "木の あいだ", world: 1, stock: 60,
-    wave: { delay: 1.2, v0: 5.0, acc: 0.22, max: 7.0 },
+  { id: 5, name: "木の あいだ", world: 1, stock: 85,
+    wave: { delay: 1.2, v0: 5.0, acc: 0.22, max: 7.0, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -424,7 +424,7 @@ DOMINO.STAGES = [
   },
   // ---- 6  ほそい みち(89 m) まっすぐ走ると 54.7 m で 追いつかれる
   { id: 6, name: "ほそい みち", world: 1, stock: 85,
-    wave: { delay: 1.2, v0: 5.0, acc: 0.22, max: 7.0 },
+    wave: { delay: 1.2, v0: 5.0, acc: 0.22, max: 7.0, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -522,7 +522,7 @@ DOMINO.STAGES = [
   },
   // ---- 7  ドーンと きょだいドミノ(52 m) まっすぐ走ると 40.1 m で 追いつかれる
   { id: 7, name: "ドーンと きょだいドミノ", world: 1, stock: 155,
-    wave: { delay: 1.2, v0: 5.0, acc: 0.5, max: 7.0 },
+    wave: { delay: 1.2, v0: 5.0, acc: 0.5, max: 7.0, far: 5.0, catchup: 0.6 },
     nearGoal: 1,
     tip: "大きな ドミノの そばを 走ると ドーンと たおれるよ",
     map: [
@@ -585,7 +585,7 @@ DOMINO.STAGES = [
   },
   // ---- 8  まよいの はやし(115 m) まっすぐ走ると 60.4 m で 追いつかれる
   { id: 8, name: "まよいの はやし", world: 1, stock: 186,
-    wave: { delay: 1.2, v0: 5.0, acc: 0.18, max: 7.0 },
+    wave: { delay: 1.2, v0: 5.0, acc: 0.18, max: 7.0, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -708,8 +708,8 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 9  ギリギリ こうえん(121 m) まっすぐ走ると 58.8 m で 追いつかれる
-  { id: 9, name: "ギリギリ こうえん", world: 1, stock: 130,
-    wave: { delay: 1.2, v0: 5.0, acc: 0.19, max: 7.0 },
+  { id: 9, name: "ギリギリ こうえん", world: 1, stock: 175,
+    wave: { delay: 1.2, v0: 5.0, acc: 0.19, max: 7.0, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -839,7 +839,7 @@ DOMINO.STAGES = [
   },
   // ---- 10  つみきの とう(152 m) まっすぐ走ると 81.6 m で 追いつかれる
   { id: 10, name: "つみきの とう", world: 1, stock: 215,
-    wave: { delay: 1.2, v0: 4.64, acc: 0.15, max: 7.0 },
+    wave: { delay: 1.2, v0: 4.64, acc: 0.15, max: 7.0, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -1000,7 +1000,7 @@ DOMINO.STAGES = [
   },
   // ---- 11  かずの もん(53 m) まっすぐ走ると 49.9 m で 追いつかれる
   { id: 11, name: "かずの もん", world: 2, stock: 105,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05, far: 5.0, catchup: 0.6 },
     nearGoal: 2,
     tip: "「+20」「×2」の もんで ドミノが ふえる。「-10」は ワナ!",
     map: [
@@ -1073,7 +1073,7 @@ DOMINO.STAGES = [
   },
   // ---- 12  ダッシュばん(55 m) まっすぐ走ると 49.9 m で 追いつかれる
   { id: 12, name: "ダッシュばん", world: 2, stock: 90,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05, far: 5.0, catchup: 0.6 },
     nearGoal: 1,
     tip: "青い やじるしの 上を 走ると はやくなるよ",
     map: [
@@ -1143,7 +1143,7 @@ DOMINO.STAGES = [
   },
   // ---- 13  ぬかるみ(63 m) まっすぐ走ると 49.9 m で 追いつかれる
   { id: 13, name: "ぬかるみ", world: 2, stock: 140,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05, far: 5.0, catchup: 0.6 },
     tip: "ぬかるみでは おそくなる。ジグザグで 波を おくらせよう",
     map: [
       '.........',   // ゴール
@@ -1220,7 +1220,7 @@ DOMINO.STAGES = [
   },
   // ---- 14  おもちゃの つみき(63 m) まっすぐ走ると 49.9 m で 追いつかれる
   { id: 14, name: "おもちゃの つみき", world: 2, stock: 95,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.262, max: 7.05, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -1297,8 +1297,8 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 15  ぬかるみ めいろ(86 m) まっすぐ走ると 52.8 m で 追いつかれる
-  { id: 15, name: "ぬかるみ めいろ", world: 2, stock: 155,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.232, max: 7.05 },
+  { id: 15, name: "ぬかるみ めいろ", world: 2, stock: 180,
+    wave: { delay: 1.17, v0: 5.0, acc: 0.232, max: 7.05, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -1397,7 +1397,7 @@ DOMINO.STAGES = [
   },
   // ---- 16  ×2の かけひき(92 m) まっすぐ走ると 55.1 m で 追いつかれる
   { id: 16, name: "×2の かけひき", world: 2, stock: 100,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.212, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.212, max: 7.05, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -1508,7 +1508,7 @@ DOMINO.STAGES = [
   },
   // ---- 17  おもちゃ パレード(60 m) まっすぐ走ると 44.6 m で 追いつかれる
   { id: 17, name: "おもちゃ パレード", world: 2, stock: 90,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.342, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.342, max: 7.05, far: 5.0, catchup: 0.6 },
     nearGoal: 1,
     map: [
       '.........',   // ゴール
@@ -1580,8 +1580,8 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 18  ドロドロ だいさくせん(105 m) まっすぐ走ると 57.8 m で 追いつかれる
-  { id: 18, name: "ドロドロ だいさくせん", world: 2, stock: 205,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.192, max: 7.05 },
+  { id: 18, name: "ドロドロ だいさくせん", world: 2, stock: 230,
+    wave: { delay: 1.17, v0: 5.0, acc: 0.192, max: 7.05, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -1701,7 +1701,7 @@ DOMINO.STAGES = [
   },
   // ---- 19  ダッシュ サーキット(111 m) まっすぐ走ると 57.8 m で 追いつかれる
   { id: 19, name: "ダッシュ サーキット", world: 2, stock: 165,
-    wave: { delay: 1.17, v0: 5.0, acc: 0.192, max: 7.05 },
+    wave: { delay: 1.17, v0: 5.0, acc: 0.192, max: 7.05, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',
@@ -1826,8 +1826,8 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 20  おもちゃの きしゃ(132 m) まっすぐ走ると 77.3 m で 追いつかれる
-  { id: 20, name: "おもちゃの きしゃ", world: 2, stock: 100,
-    wave: { delay: 1.17, v0: 4.84, acc: 0.132, max: 7.05 },
+  { id: 20, name: "おもちゃの きしゃ", world: 2, stock: 130,
+    wave: { delay: 1.17, v0: 4.84, acc: 0.132, max: 7.05, far: 5.0, catchup: 0.6 },
     map: [
       '.........',   // ゴール
       '....G....',

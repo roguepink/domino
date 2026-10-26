@@ -3,9 +3,9 @@
    ゲームの部品(index.html・css・js・3D の three.js)と アイコン類を覚えておく。
    ゲームを直しただけなら VERSION は そのままでいい(開くたびに、まずネットで最新を取りにいくので)。
    FILES(覚えるファイル)を変えたときだけ VERSION を 1つ上げる(古い覚えを 一斉に捨てる)。 */
-const VERSION = 'domino-v2';
+const VERSION = 'domino-v3';
 const FILES = [
-  './', 'index.html', 'install.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png', 'css/style.css', 'js/config.js', 'js/level.js', 'js/sim.js', 'js/worlds.js', 'js/stages.js', 'js/save.js', 'js/input.js', 'js/audio.js', 'js/render2d.js', 'js/ui.js', 'js/bot.js', 'js/main.js', 'js/render3d.js', 'vendor/three/build/three.module.min.js', 'vendor/three/build/three.core.js'
+  './', 'index.html', 'install.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png', 'css/style.css', 'js/config.js', 'js/level.js', 'js/sim.js', 'js/worlds.js', 'js/stages.js', 'js/save.js', 'js/input.js', 'js/audio.js', 'js/render2d.js', 'js/ui.js', 'js/bot.js', 'js/main.js', 'js/render3d.js', 'vendor/three/build/three.module.min.js', 'vendor/three/build/three.core.js', 'shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg'
 ];
 
 self.addEventListener('install', (e) => {

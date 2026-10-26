@@ -1,7 +1,7 @@
 {
   "name": "ドミノ ラッシュ",
   "short_name": "ドミノ",
-  "description": "走って並べて、うしろから迫る倒れる波から逃げきれ！ 全100ステージのドミノアクション。",
+  "description": "走ると ドミノが ならぶ。うしろから倒れてくる波から にげきれ! 全100ステージのドミノアクション。",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
@@ -11,8 +11,49 @@
   "background_color": "#140c2a",
   "theme_color": "#140c2a",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "shots/1.jpg",
+      "sizes": "360x640",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "shots/2.jpg",
+      "sizes": "360x640",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "shots/3.jpg",
+      "sizes": "360x640",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "shots/4.jpg",
+      "sizes": "360x640",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    }
   ]
 }
