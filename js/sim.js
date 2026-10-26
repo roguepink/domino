@@ -165,7 +165,7 @@ DOMINO.Sim = (function () {
       prev.rest = restAngle(dom.gap, prev.tall || C.DOM_H);
     }
     d.push(dom);
-    this.p.jumped = false;
+    if (!this.p.air) this.p.jumped = false;      // 空中で(穴の手前に)置いたときは まだ「ジャンプ中」のまま
     if (!free) {
       var cost = dom.twin ? 2 : 1;
       this.stock = Math.max(0, this.stock - cost); this.stockUsed += cost;
