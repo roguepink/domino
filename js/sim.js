@@ -23,7 +23,7 @@
  *   lay {i} / topple {i, combo} / wavestart / pick {item} / jump / land / bump / stun {why} / boost / empty / low
  *   gate {g} 門が開いた / bomb {x,z} / bigfall {i} 途中の巨大ドミノ / note {k} 音のドミノ / opgate {op,n,ok} +20 ×2 の門
  *   split 2列になった / bridge {i} 橋ドミノができた / rival {i} 前から倒れてくる列が動き出した / sink {on}
- *   near ギリギリに入った / goal / stepaside / giant 大ドミノが倒れ始めた / clear / fail {why} / revive
+ *   near 波が近い(あぶない!)/ escape {n} にげきった(セーフ! ギリギリ1回)/ goal / stepaside / giant 大ドミノが倒れ始めた / clear / fail {why} / revive
  */
 var DOMINO = window.DOMINO = window.DOMINO || {};
 
@@ -41,6 +41,7 @@ DOMINO.Sim = (function () {
       delay: w.delay != null ? w.delay : C.WAVE_DELAY,
       v0: w.v0 || C.WAVE_V0, acc: w.acc != null ? w.acc : C.WAVE_ACC, max: w.max || C.WAVE_MAX,
       far: w.far || C.WAVE_FAR, catchup: w.catchup != null ? w.catchup : C.WAVE_CATCHUP,
+      closer: w.closer != null ? w.closer : C.WAVE_CLOSER,
       nearGoal: stage.nearGoal || 3,
       sinkPeriod: stage.sinkPeriod || 3.2      // しずむ床(f)の1回分の秒
     };
@@ -256,7 +257,7 @@ DOMINO.Sim = (function () {
     if (!this._hitsSolid(nx, p.z)) p.x = nx; else p.vx = 0;
     var nz = p.z + fwd * dt;
     if (!this._hitsSolid(p.x, nz)) { p.z = nz; p.blocked = false; }
-    else { if (!p.blocked) this._emit('bump'); p.blocked = true; }
+    else { if (!p.blocked) this._emit('bump'); p.blocked = true; this.lastBump = this.t; }
     if (Math.abs(p.vx + push) + fwd > 0.05) p.heading = Math.atan2(p.vx + push, Math.max(fwd, 0.001));
 
     // 床の効果
@@ -274,6 +275,7 @@ DOMINO.Sim = (function () {
     var p = this.p;
     if (p.hitCool > 0 || p.safe > 0 || this.state !== 'run') return;
     p.stun = C.STUN; p.hitCool = C.STUN + 0.5;
+    this.lastStun = this.t; this.lastStunWhy = why;
     this._emit('stun', { why: why });
   };
 
@@ -316,6 +318,10 @@ DOMINO.Sim = (function () {
     }
     var last = this.doms[this.doms.length - 1];
     p.s = last.s + Math.hypot(p.x - last.x, p.z - last.z);
+    // ドミノが0本で、もう列につなげない(届く長さより はなれた)→ すぐ「ドミノが なくなった」
+    if (!free && this.state === 'run' && this.stock <= 0 && !p.air && p.safe <= 0 && p.s - last.s > reachOf(last)) {
+      this.brokenAt = last.n; this.brokenGap = false; this._fail('empty');
+    }
   };
 
   P._stepItems = function () {
@@ -352,7 +358,10 @@ DOMINO.Sim = (function () {
     var d = this.doms, p = this.p, maxS = -1;
     var v = this.wave.v;
     if (this.state === 'goal' || this.state === 'clear') v = Math.max(v, 8);   // ゴールのあとは 少し急いで 見せ場へ
-    else if (this.danger < 90 && this.danger > this.cfg.far) v += (this.danger - this.cfg.far) * this.cfg.catchup;   // 遠すぎると 追い上げる
+    else {
+      var far = Math.max(3, this.cfg.far - this.cfg.closer * this.progress);   // 面の後半ほど 近くまで追い上げる
+      if (this.danger < 90 && this.danger > far) v += (this.danger - far) * this.cfg.catchup;   // 遠すぎると 追い上げる
+    }
     if (this.wave.hold > 0) { this.wave.hold -= dt; v = 0; }                  // お助けの直後は 少し止まる
     for (var f = 0; f < this.fronts.length; f++) {
       var fr = this.fronts[f];
@@ -450,11 +459,15 @@ DOMINO.Sim = (function () {
     this._emit('giant');
   };
 
+  // ギリギリ: 波が NEAR より近くまで来たら「あぶない!」(near)。そこから にげきったら「セーフ!」(escape)= 1回と数える
+  //   近いほど 点が増える(nearMul: 1.6m 以内 ×2、0.8m 以内 ×3)
   P._stepScore = function (dt) {
-    if (this.state !== 'run' || !this.wave.started) return;
+    if (this.state !== 'run' || !this.wave.started) { this.nearMul = 1; return; }
     var near = this.inNear ? this.danger < C.NEAR + 0.8 : this.danger < C.NEAR;   // 出入りでチラチラしないよう 少し幅をもたせる
-    if (near) { this.nearTime += dt; this.score += Math.round(dt * 300); }
-    if (near && !this.inNear) { this.nearCount++; this._emit('near'); }
+    this.nearMul = this.danger < 0.8 ? 3 : this.danger < C.NEAR ? 2 : 1;
+    if (near) { this.nearTime += dt; this.score += Math.round(dt * 150 * this.nearMul); }
+    if (near && !this.inNear) this._emit('near');
+    if (!near && this.inNear) { this.nearCount++; this.score += 200; this._emit('escape', { n: this.nearCount }); }
     this.inNear = near;
   };
 
@@ -467,6 +480,15 @@ DOMINO.Sim = (function () {
   P._fail = function (why) {
     if (this.state === 'fail' || this.state === 'clear') return;
     this.state = 'fail'; this.failReason = why; this.endT = 0;
+    // 負けの原因の ヒント(画面の係が コツの文を選ぶ): wall かべで止まった / hit じゃま物 / mud ぬかるみ / far 遠回り / ''
+    var h = '';
+    if (why === 'caught') {
+      if (this.lastBump != null && this.t - this.lastBump < 2.5) h = 'wall';
+      else if (this.lastStun != null && this.t - this.lastStun < 2.5) h = 'hit';
+    } else if (why === 'empty' || why === 'broken') {
+      h = this.stockUsed > (this.p.z - this.level.start.z) / C.SPACING * 1.35 ? 'far' : '';
+    }
+    this.failHint = h;
     this.combo = 0;
     this._emit('fail', { why: why });
   };

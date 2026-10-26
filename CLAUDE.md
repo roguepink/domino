@@ -48,6 +48,11 @@ sim.js に新しい仕掛けが要るときは、まとめ役に頼む(勝手に
 - `sim.giant` ゴールの大ドミノ {x, z, h, t0}(位置は goalZ + CONFIG.GIANT_DZ、高さ CONFIG.GIANT_H)。`sim.brokenAt` 列が切れた所のドミノ番号。`sim.level` 地図(level.js)。`sim.cellAt(x,z)` マスの種類(DOMINO.Level.T)
 - `sim.gateOpen[g]` `sim.gateT[g]` 門 / `sim.broken[]` こわれたかべのマス番号 / `sim.sunk(z)` しずむ床が今しずんでいるか
 - `sim.score` `sim.stock` `sim.combo` `sim.stars`(取った金のドミノ) `sim.starsTotal` `sim.nearCount` `sim.cfg.nearGoal` `sim.progress` 0..1
+- 波の追い上げ: 波が `wave.far`(CONFIG.WAVE_FAR)より遠いと速くなる。面の後半ほど近くまで(WAVE_CLOSER)。ふだん 3m くらい後ろ
+- ギリギリ: 'near' = 波が 1.6m より近づいた(あぶない)、'escape' {n} = そこから にげきった(セーフ! ★3 の数 = sim.nearCount)。`sim.nearMul` 1|2|3 点の倍率
+- `sim.failHint` 負けの原因 'wall' | 'hit' | 'far' | ''。ドミノ0本で つなげなくなったら すぐ 'empty'
+- コースのはしは柵(かべ)。空の島 W4 と stage.edge:'open' だけ 穴
+- ゴースト(前の自分): `DOMINO.Game.ghost` = null か {path:[x,z,y,...], every:6, clear, maxZ, t}(sim.t が every*DT ごと)。出来事 'beatghost'、res.beatGhost
 - `sim.events[]` その1/60秒に起きたこと。main が1コマ分をまとめて、各係の `onEvents(list, sim)` に渡す(種類は sim.js の先頭)
 
 ### main.js(DOMINO.Game)
@@ -71,6 +76,9 @@ sim.js に新しい仕掛けが要るときは、まとめ役に頼む(勝手に
 ### 着せかえ(ui.js が決める・render3d.js が読む)
 - `DOMINO.SKINS = [{ id:'classic', name:'にじいろ', cost:0(★の合計がいくつで手に入るか), colors:'rainbow' か ['#hex', ...], pip:'#fff', look:'gloss'|'wood'|'neon'|'gold'|'candy'|'glass' }, ...]`
 - 今の着せかえ = `DOMINO.Save.data.skin`。render3d は setSim のときに読む
+
+### ぼうし(ui.js が決める・render3d.js が形を作る)
+- `DOMINO.HATS = [{ id, name, cost(コイン) }]`。id は none cap ribbon crown tophat chef helmet flower oni halo。今のぼうし = `Save.data.hat`、買ったもの = `Save.data.hats`
 
 ### 保存(save.js)
 - `DOMINO.Save.data` {stars, best, fails, skipped, coins, skin, skins, settings{sound, music, shake}, seenTips}、`write()` `unlocked()` `totalStars()`

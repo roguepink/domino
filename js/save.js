@@ -16,7 +16,20 @@ DOMINO.Save = (function () {
   var data = def();
   try {
     var raw = localStorage.getItem(KEY);
-    if (raw) { var o = JSON.parse(raw); var d = def(); for (var k in d) if (o[k] != null) d[k] = o[k]; data = d; }
+    if (raw) {
+      var o = JSON.parse(raw), d = def();
+      if (o && typeof o === 'object') for (var k in d) {
+        var v = o[k];
+        if (v == null || typeof v !== typeof d[k] || Array.isArray(v) !== Array.isArray(d[k])) continue;   // 形がちがうものは 使わない
+        d[k] = v;
+      }
+      // 中身の点検(数でないものは 消す)
+      ['stars', 'best', 'fails'].forEach(function (key) { var m = d[key]; for (var id in m) { var n = +m[id]; if (!(n >= 0) || !isFinite(n)) delete m[id]; else m[id] = n; } });
+      d.coins = +d.coins >= 0 ? +d.coins : 0;
+      var st = def().settings; for (var sk in st) if (typeof d.settings[sk] !== 'boolean') d.settings[sk] = st[sk];
+      if (typeof d.skin !== 'string') d.skin = 'classic';
+      data = d;
+    }
   } catch (e) {}
 
   return {

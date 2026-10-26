@@ -20,7 +20,8 @@ DOMINO.Game = (function () {
     state: 'menu', sim: null, stageId: 1, stage: null, render: null,
     timeScale: 1, slowT: 0, slowScale: 1, stopT: 0,
     auto: /auto/.test(location.hash), autoBot: null,
-    events: [], fps: 0, resultShown: false, playT: 0
+    events: [], fps: 0, resultShown: false, playT: 0,
+    ghosts: {}, ghost: null, path: [], GHOST_EVERY: 6   // ゴースト = 前の自分。GHOST_EVERY コマ(0.1秒)ごとに 位置を覚える
   };
   var box = document.getElementById('view');
   var hashArgs = {};
@@ -37,6 +38,8 @@ DOMINO.Game = (function () {
     unpauseAudio();
     G.stageId = id; G.stage = stageById(id);
     G.sim = new DOMINO.Sim(G.stage);
+    // 前の自分(ゴースト): この面で さっき遊んだときの 走った道。0.1秒ごとの [x, z, y]
+    G.ghost = G.ghosts[id] || null; G.path = []; G.ghostBeat = false;
     G.resultShown = false; G.playT = 0;
     G.timeScale = 1; G.slowT = 0; G.stopT = 0;
     if (G.render) G.render.setSim(G.sim, G.stage);
@@ -111,6 +114,11 @@ DOMINO.Game = (function () {
       goldGot: s.stars, goldTotal: s.starsTotal, near: s.nearCount, nearGoal: s.cfg.nearGoal,
       dominoes: s.doms.length, progress: s.progress, unlockedNew: DOMINO.Save.unlocked() > unlockedBefore
     };
+    // 今回の道を、次の「前の自分」として覚える(クリアした道は、もっと速いクリアが出るまで のこす)
+    var maxZ = 0; for (var k = 1; k < G.path.length; k += 3) maxZ = Math.max(maxZ, G.path[k]);
+    var old = G.ghosts[id];
+    if (!(old && old.clear && (!clear || old.t <= s.t))) G.ghosts[id] = { path: G.path, clear: clear, maxZ: maxZ, t: s.t, every: G.GHOST_EVERY };
+    res.beatGhost = G.ghostBeat || (clear && G.ghost && (!G.ghost.clear || s.t < G.ghost.t));
     G.lastResult = res;
     DOMINO.Input.enable(false);
     if (DOMINO.UI) DOMINO.UI.showResult(res, s);
@@ -156,6 +164,11 @@ DOMINO.Game = (function () {
         while (acc >= C.DT && steps < 5) {
           var inp = G.state === 'play' ? (G.auto ? autoInput(G.sim) : DOMINO.Input.read()) : {};
           G.sim.step(inp);
+          if (G.state === 'play' && G.sim.state !== 'fail' && Math.round(G.sim.t / C.DT) % G.GHOST_EVERY === 0) {
+            var pp = G.sim.p; G.path.push(+pp.x.toFixed(2), +pp.z.toFixed(2), +Math.max(0, pp.y).toFixed(2));
+            // 前の自分(負けた回)の いちばん先を こえた
+            if (G.ghost && !G.ghost.clear && !G.ghostBeat && pp.z > G.ghost.maxZ + 0.5) { G.ghostBeat = true; G.sim.events.push({ type: 'beatghost' }); }
+          }
           for (var i = 0; i < G.sim.events.length; i++) evs.push(G.sim.events[i]);
           acc -= C.DT; steps++;
         }

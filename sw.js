@@ -25,7 +25,8 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(req)
       .then((res) => {
-        if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
+        // ?a=1 などの印は 覚えるときに消す(同じファイルを 何こも覚えないように)
+        if (res.ok) { const copy = res.clone(), u = new URL(req.url); u.search = ''; caches.open(VERSION).then((c) => c.put(u.href, copy)); }
         return res;
       })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('index.html')))
