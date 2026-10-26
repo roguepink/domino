@@ -162,9 +162,11 @@ DOMINO.Bot = (function () {
     }
     if (p.stun > 0) sc -= 60;
     // 前が かべ: いちばん近い すきまへ(止まって 横にならべ続けるのを ふせぐ)
-    if (p.blocked) sc -= 40;
+    // (ギリギリねらいの ときは、わざと かべで 待って 波を 近づけるのも あり)
+    var waitOk = node.nw && s.nearCount < s.cfg.nearGoal && d > 1.8;
+    if (p.blocked && !waitOk) sc -= 40;
     var r0 = Math.floor(p.z), cols = s.level.cols, half = cols / 2;
-    for (var k = 1; k <= 4; k++) {
+    for (var k = 1; k <= 4 && !waitOk; k++) {
       var zz = r0 + k + 0.5;
       if (!s._solid(p.x, zz)) continue;
       var bestD = 99;
