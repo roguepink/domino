@@ -609,3 +609,6 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
   animation: efall .35s ease-in forwards; animation-delay: calc(1.2s + var(--i) * .12s); }
 @keyframes efall { 0% { transform: rotate(0); } 80% { transform: rotate(62deg); } 100% { transform: rotate(56deg); } }
 @media (max-height: 600px) { .ebig { font-size: 58px; } .ehero { height: 54px; } .erow { margin-top: 10px; height: 30px; } .erow i { height: 26px; width: 10px; } }
+@media (max-width: 360px) { #combo { top: calc(var(--safe-t) + 228px); } }
+.ehero .arm { top: 14px; height: 18px; width: 6px; right: -11px; }
+.ehero .arm::after { left: -3px; top: -7px; width: 11px; height: 11px; border-width: 2px; }
