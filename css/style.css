@@ -275,8 +275,8 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 .score .mul { position: absolute; right: 0; top: 100%; margin-top: 6px; font-style: normal; font-size: 0; }
 .score .mul.on { font-size: 16px; color: #fff; background: #ff9a3c; border: 2px solid var(--ink); border-radius: 999px; padding: 0 6px; text-shadow: none; animation: chipPop .3s ease-out; }
 .score .mul.m3 { background: var(--red); font-size: 18px; }
-#hud .warn { position: absolute; left: 50%; top: calc(var(--safe-t) + 96px); transform: translateX(-50%); background: var(--red); color: #fff; border: 2px solid var(--ink);
-  border-radius: 999px; padding: 1px 12px; font-size: 14px; opacity: 0; white-space: nowrap; }
+#hud .warn { position: absolute; left: 50%; top: calc(var(--safe-t) + 122px); transform: translateX(-50%); background: #ff1f3d; color: #fff; border: 3px solid #fff;
+  box-shadow: 0 0 0 2px var(--ink), 0 0 14px rgba(255,31,61,.8); border-radius: 999px; padding: 2px 16px; font-size: 19px; opacity: 0; white-space: nowrap; letter-spacing: 1px; }
 #hud .warn.on { opacity: 1; animation: blink .4s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .35; } }
 
@@ -285,11 +285,11 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
   background: radial-gradient(ellipse at 50% 55%, rgba(255,30,50,0) 48%, rgba(255,30,50,.45) 78%, rgba(190,0,25,.85) 100%); }
 #edge::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0;
   background: radial-gradient(ellipse at 50% 55%, rgba(255,30,50,0) 40%, rgba(255,0,30,.5) 85%, rgba(160,0,20,.9) 100%); }
-#edge.beat::after { animation: beat .62s ease-out infinite; }
+#edge.beat::after { animation: beat var(--beat, .62s) ease-out infinite; }
 @keyframes beat { 0% { opacity: 0; } 12% { opacity: 1; } 24% { opacity: .2; } 36% { opacity: .8; } 100% { opacity: 0; } }
 
 /* 短い文字(ギリギリ! +20 ×2 …) */
-#pop { position: absolute; z-index: 5; left: 0; right: 0; top: calc(var(--safe-t) + 126px); text-align: center; font-size: 30px; line-height: 1.1; font-weight: 900; color: #fff; text-shadow: var(--out);
+#pop { position: absolute; z-index: 5; left: 0; right: 0; top: calc(var(--safe-t) + 158px); text-align: center; font-size: 30px; line-height: 1.1; font-weight: 900; color: #fff; text-shadow: var(--out);
   opacity: 0; pointer-events: none; white-space: nowrap; }
 #pop.go { animation: popIn .8s ease-out forwards; }
 #pop small { display: block; font-size: 16px; margin-top: 2px; color: #fff; }
@@ -499,8 +499,8 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
   .s-result.fail .card .btn.huge { grid-row: 1 / span 3; }
   .slot .big { font-size: 40px; } .slot.s1 .big { font-size: 48px; margin-bottom: 4px; }
   .rscore { font-size: 30px; }
-  #pop { top: calc(var(--safe-t) + 124px); }
-  #hud .warn { top: calc(var(--safe-t) + 94px); }
+  #pop { top: calc(var(--safe-t) + 150px); }
+  #hud .warn { top: calc(var(--safe-t) + 112px); }
   #combo { top: calc(var(--safe-t) + 92px); }
 }
 
@@ -582,3 +582,30 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
   .ico.dom, .ico.gdom { width: 10px; height: 17px; }
   .score { font-size: 18px; }
 }
+
+/* ---------- 3回目 ---------- */
+/* ゴールまで ドミノが たりるか */
+#hud .need { position: absolute; left: calc(10px + var(--safe-l)); top: calc(var(--safe-t) + 92px); font-size: 12px; border-radius: 999px; padding: 1px 8px;
+  border: 2px solid var(--ink); white-space: nowrap; display: none; }
+#hud .need.ok { display: block; background: #dff8d8; color: #1f7a2e; }
+#hud .need.ok i { font-style: normal; }
+#hud .need.ng { display: block; background: var(--red); color: #fff; font-size: 13px; animation: blink .6s steps(2) infinite; }
+#hud .need b { font-size: 15px; }
+#plus { top: calc(var(--safe-t) + 116px) !important; }
+
+/* エンディングの 演出 */
+.ecol { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 370px; max-height: 100%; }
+.ecol .card { flex: 0 1 auto; min-height: 0; }
+.ebig { font-size: 76px; line-height: 1; font-weight: 900; color: var(--yellow); text-shadow: var(--out), 0 0 18px rgba(255,210,63,.8); animation: ebig 1s cubic-bezier(.2, 1.6, .4, 1) both .3s; }
+@keyframes ebig { from { transform: scale(0) rotate(-20deg); } to { transform: none; } }
+.emsg { margin-top: -6px; }
+.ehero { position: relative; }
+.domikun.wave { animation: bob .5s ease-in-out infinite alternate; }
+.ehero .arm { position: absolute; right: -14px; top: 4px; width: 7px; height: 22px; background: var(--ink); border-radius: 4px; transform-origin: 50% 100%; animation: wave .35s ease-in-out infinite alternate; }
+.ehero .arm::after { content: ''; position: absolute; left: -4px; top: -9px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2.5px solid var(--ink); }
+@keyframes wave { from { transform: rotate(-10deg); } to { transform: rotate(35deg); } }
+.erow { display: flex; justify-content: center; gap: 0; margin-top: 18px; height: 40px; align-items: flex-end; }
+.erow i { display: block; width: 12px; height: 34px; margin-right: 6px; background: var(--c); border: 2.5px solid var(--ink); border-radius: 4px; transform-origin: 100% 100%;
+  animation: efall .35s ease-in forwards; animation-delay: calc(1.2s + var(--i) * .12s); }
+@keyframes efall { 0% { transform: rotate(0); } 80% { transform: rotate(62deg); } 100% { transform: rotate(56deg); } }
+@media (max-height: 600px) { .ebig { font-size: 58px; } .ehero { height: 54px; } .erow { margin-top: 10px; height: 30px; } .erow i { height: 26px; width: 10px; } }

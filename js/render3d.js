@@ -1238,12 +1238,31 @@ function buildFinale(kind, gz, small) {
     mesh(box(2.6, 4.2, 2.2), wallM, 0, 2.1, 2.5, { r: 1.0 });
     mesh(new THREE.ConeGeometry(1.8, 2.2, 4), roofM, 0, 5.3, 2.5, { ry: PI / 4, r: 0.6 });
     for (let k = 0; k < 4; k++) { const rk = mesh(new THREE.ConeGeometry(0.16, 0.45, 8), RB[k], -1.5 + k, 1.0, 2.5, { mode: 'rocket', r: 0.2, delay: 0.3 + k * 0.25 }); rk.visible = false; rk.userData.col = RB[(k * 2) % 6]; F.showOnHit.push(rk); }
+    if (stageObj && stageObj.id === 100) {
+      // 最後の面: お城が くずれたあと、空に ドミノで書いた「100」が うかぶ
+      const sky = new THREE.Group(); sky.position.set(0, 9, -3); sky.visible = false; grp.add(sky);
+      const dm = makeDomMat('gold', '#ffffff', '#ffd23f', 0.45);
+      const dg = new THREE.BoxGeometry(0.42, 1.0, 0.14);
+      const seg = { 1: [[1, 0.5, 1], [1, -0.5, 1]], 0: [[0, 1, 0], [-1, 0.5, 1], [1, 0.5, 1], [-1, -0.5, 1], [1, -0.5, 1], [0, -1, 0]] };
+      [1, 0, 0].forEach((dgt, k) => {
+        for (const [sx2, sy2, vert] of seg[dgt]) {
+          const m = new THREE.Mesh(dg, dm);
+          m.position.set((k - 1) * 2.0 + sx2 * 0.62, sy2 * 1.15, 0);
+          if (!vert) { m.rotation.z = PI / 2; m.scale.set(1, 1.1, 1); }
+          sky.add(m);
+        }
+      });
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: R.dotTex, color: 0xffe27a, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
+      halo.scale.set(9, 6, 1); sky.add(halo);
+      F.sky100 = sky;
+    }
   }
   grp.traverse((o) => { if (o.isMesh) o.receiveShadow = true; });
 
   F.toSim = (v) => ({ x: v.x + grp.position.x, y: v.y, z: -(v.z + grp.position.z) });
   F.reset = () => {
     F.hit = false; F.t = 0;
+    if (F.sky100) F.sky100.visible = false;
     for (const o of F.pieces) { const u = o.userData; o.position.copy(u.p0); o.rotation.copy(u.r0); u.v.set(0, 0, 0); u.w.set(0, 0, 0); u.on = false; u.burst = false; u.ang = 0; u.angV = 0; o.visible = true; }
     for (const o of F.hideOnHit) o.visible = true;
     for (const o of F.showOnHit) o.visible = false;
@@ -1264,6 +1283,17 @@ function buildFinale(kind, gz, small) {
     }
     if (!F.hit) return;
     F.t += dt;
+    if (F.sky100) {
+      const k = clamp((F.t - 1.2) / 1.2, 0, 1);
+      F.sky100.visible = k > 0;
+      if (k > 0) {
+        const e = 1 - Math.pow(1 - k, 3);
+        F.sky100.position.y = 5 + 4.5 * e + Math.sin(t * 1.5) * 0.12;
+        F.sky100.scale.setScalar(0.4 + 0.6 * e);
+        F.sky100.rotation.y = Math.atan2(camera.position.x - grp.position.x, camera.position.z - grp.position.z) * 0.9;
+        if (k < 1 && Math.random() < 0.5) { const q = F.toSim(F.sky100.position); R.glow.emit(q.x + rnd(-3, 3), q.y + rnd(-1.5, 1.5), q.z, rnd(-1, 1), rnd(-1, 1), 0, 0.8, 0.4, [1, 0.9, 0.5], 0, 1); }
+      }
+    }
     for (const o of F.pieces) {
       const u = o.userData;
       if (!u.on) {
@@ -1735,6 +1765,11 @@ function makeGhost() {
   const g = new THREE.Group();
   const mat = share(new THREE.MeshBasicMaterial({ color: 0x8fd8ff, transparent: true, opacity: 0.5, depthWrite: false }));
   const body = new THREE.Mesh(share(new THREE.BoxGeometry(0.56, 0.84, 0.3)), mat); body.position.y = 0.26 + 0.42; g.add(body);
+  // 光るふち(少し大きい うら面を 足し算の光で)→ 緑・白・赤・夜の どの床でも 見える
+  const rimMat = share(new THREE.MeshBasicMaterial({ color: 0x3fc8ff, transparent: true, opacity: 0.85, side: THREE.BackSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const rim = new THREE.Mesh(share(new THREE.BoxGeometry(0.68, 0.96, 0.42)), rimMat); rim.position.copy(body.position); g.add(rim);
+  const dark = share(new THREE.MeshBasicMaterial({ color: 0x0a2a55, transparent: true, opacity: 0.5, side: THREE.BackSide, depthWrite: false }));
+  const edge = new THREE.Mesh(share(new THREE.BoxGeometry(0.74, 1.02, 0.48)), dark); edge.position.copy(body.position); g.add(edge);
   const face = new THREE.Mesh(share(new THREE.PlaneGeometry(0.5, 0.5)), share(new THREE.MeshBasicMaterial({ map: R.faces.run, transparent: true, opacity: 0.55, depthWrite: false, color: 0x2a5a90 })));
   face.rotation.y = PI; face.position.set(0, 0.26 + 0.84 * 0.62, -0.153); g.add(face);
   const legGeo = share(new THREE.CapsuleGeometry(0.065, 0.14, 3, 6));
@@ -1742,7 +1777,7 @@ function makeGhost() {
   for (const x of [-0.13, 0.13]) { const l = new THREE.Mesh(legGeo, mat); l.position.set(x, 0.14, 0); g.add(l); legs.push(l); }
   g.scale.setScalar(1.22); g.visible = false; g.renderOrder = 4;
   scene.add(g);
-  R.ghost = { g, legs, mat, yaw: 0, fade: 1, beat: false };
+  R.ghost = { g, legs, mat, rimMat, dark, yaw: 0, fade: 1, beat: false };
 }
 function updateGhost(dt) {
   const Gh = R.ghost, G = game(), gh = G && G.ghost;
@@ -1757,7 +1792,7 @@ function updateGhost(dt) {
   const dz = Math.abs(z - sim.p.z), dx = Math.abs(x - sim.p.x);
   const near = dz < 1.2 && dx < 0.9 ? 0.35 : 1;
   Gh.fade = Gh.beat ? Math.max(0, Gh.fade - dt * 1.5) : Math.min(1, Gh.fade + dt * 3);
-  Gh.mat.opacity = 0.5 * near * Gh.fade;
+  Gh.mat.opacity = 0.5 * near * Gh.fade; Gh.rimMat.opacity = (0.6 + 0.25 * Math.sin(realClock * 5)) * near * Gh.fade; Gh.dark.opacity = 0.45 * near * Gh.fade;
   Gh.g.visible = Gh.fade > 0.02;
   Gh.g.position.set(x, y, -z);
   const hx = path[b] - path[a], hz = path[b + 1] - path[a + 1];

@@ -148,14 +148,15 @@ DOMINO.UI = (function () {
         '<span class="chip near"><i class="ico nr">ギリ</i><b class="v">0/3</b></span>' +
         '<span class="score"><i class="mul"></i><b class="v">0</b></span>' +
       '</div>' +
-      '<div class="warn">あぶない!</div>';
+      '<div class="warn">あぶない!</div>' +
+      '<div class="need"></div>';
     root.appendChild(hud); R.hud = hud;
     R.fill = hud.querySelector('.fill'); R.waveFill = hud.querySelector('.wavefill');
     R.mkWave = hud.querySelector('.mk.wave'); R.mkHero = hud.querySelector('.mk.hero'); R.prog = hud.querySelector('.prog');
     R.stock = hud.querySelector('.chip.stock'); R.stockV = R.stock.querySelector('.v');
     R.gold = hud.querySelector('.chip.gold'); R.goldV = R.gold.querySelector('.v');
     R.near = hud.querySelector('.chip.near'); R.nearV = R.near.querySelector('.v');
-    R.scoreV = hud.querySelector('.score .v'); R.mul = hud.querySelector('.score .mul'); R.warn = hud.querySelector('.warn');
+    R.scoreV = hud.querySelector('.score .v'); R.mul = hud.querySelector('.score .mul'); R.warn = hud.querySelector('.warn'); R.need = hud.querySelector('.need');
     R.pop = h('div', 'pop', ''); R.pop.id = 'pop'; root.appendChild(R.pop);
     R.combo = h('div', 'combo', ''); R.combo.id = 'combo'; root.appendChild(R.combo);
     R.plus = h('div', '', ''); R.plus.id = 'plus'; root.appendChild(R.plus);
@@ -292,7 +293,7 @@ DOMINO.UI = (function () {
     show('hud');
     R.hud.classList.add('on');
     if (!run || run.sim !== sim) {
-      run = { sim: sim, combo: 0, milestone: 0, score: 0, tipT: -1, lastStock: sim.stock, mul: 1 };
+      run = { sim: sim, combo: 0, milestone: 0, score: 0, tipT: -1, lastStock: sim.stock, mul: 1, needT: 0, needS: '', beat: 0 };
       R.pop.className = 'pop'; R.combo.className = 'combo'; popQ = []; popT = 0;
       var st = sim.stage;
       if (st && st.id === 1 && !(sv().seenTips || {})[1]) run.tipT = 0;
@@ -330,9 +331,12 @@ DOMINO.UI = (function () {
           var m = 0; for (var k = 0; k < MILES.length; k++) if (e.combo >= MILES[k]) m = MILES[k];
           if (m > run.milestone) {
             run.milestone = m;
-            R.combo.innerHTML = '<b>' + m + '</b><span>コンボ!</span>';
-            R.combo.className = 'combo' + (m >= 1000 ? ' mega' : m >= 500 ? ' big' : '');
-            restart(R.combo, 'go');
+            // 腕前と関係なく出ないように、波が近い(ギリギリ)あいだに 区切りをこえたときだけ 大きく出す
+            if (sim.inNear) {
+              R.combo.innerHTML = '<b>' + m + '</b><span>ギリギリ コンボ!</span>';
+              R.combo.className = 'combo' + (m >= 500 ? ' mega' : ' big');
+              restart(R.combo, 'go');
+            }
           }
           break;
         case 'near': break;   // 「あぶない!」は update で 小さく出す
@@ -379,13 +383,33 @@ DOMINO.UI = (function () {
     if (wp >= 0) { R.mkWave.style.display = ''; R.mkWave.style.left = (wp * 100).toFixed(1) + '%'; R.waveFill.style.width = (wp * 100).toFixed(1) + '%'; }
     else { R.mkWave.style.display = 'none'; R.waveFill.style.width = '0'; }
     var d = sim.danger, run2 = sim.state === 'run';
-    var k = run2 && d < 2.5 ? Math.max(0, Math.min(1, (2.5 - d) / 2.1)) : 0;
+    // 1.6m より近いと 0.6 以上。心臓の音のように 点滅(近いほど 速い: 1m で 約0.5秒、3m で 0.8秒)
+    var k = 0;
+    if (run2 && d < 2.6) k = d < 1.6 ? 0.6 + 0.4 * Math.min(1, (1.6 - d) / 1.4) : 0.6 * (2.6 - d) / 1.0;
     R.edge.style.opacity = k.toFixed(2);
-    R.edge.classList.toggle('beat', k > 0.45);
+    R.edge.classList.toggle('beat', k > 0.05);
+    if (k > 0.05) {
+      var per = Math.max(0.42, Math.min(0.8, 0.5 + (d - 1) * 0.15));
+      if (Math.abs(per - run.beat) > 0.04) { run.beat = per; R.edge.style.setProperty('--beat', per.toFixed(2) + 's'); }
+    }
     R.prog.classList.toggle('danger', k > 0);
     // ドミノの残り
     if (sim.stock !== run.lastStock) { R.stockV.textContent = sim.stock; run.lastStock = sim.stock; }
     R.stock.classList.toggle('low', sim.stock <= 10);
+    // ゴールまで まっすぐ走って ドミノが たりるか(1秒に 4回くらい)
+    run.needT -= dt;
+    if (run.needT <= 0 && sim.needToGoal) {
+      run.needT = 0.25;
+      var need = sim.state === 'run' ? sim.needToGoal() : 0, ns;
+      if (!need) ns = '';
+      else if (sim.stock >= need) ns = 'ok';
+      else ns = 'ng' + (need - sim.stock);
+      if (ns !== run.needS) {
+        run.needS = ns;
+        R.need.className = 'need' + (ns === 'ok' ? ' ok' : ns ? ' ng' : '');
+        R.need.innerHTML = ns === 'ok' ? '<i>✔</i> ゴールまで たりる' : ns ? 'あと <b>' + (need - sim.stock) + '</b>本 ひろおう' : '';
+      }
+    }
     R.goldV.textContent = sim.stars + '/' + sim.starsTotal;
     R.gold.classList.toggle('done', sim.starsTotal > 0 && sim.stars >= sim.starsTotal);
     R.gold.style.display = sim.starsTotal > 0 ? '' : 'none';
@@ -526,16 +550,20 @@ DOMINO.UI = (function () {
   function openEnding() {
     var n = stages().length, conf = '';
     for (var i = 0; i < 24; i++) conf += '<i style="--i:' + i + ';--x:' + ((i * 37) % 100) + '%;--c:' + RAINBOW[i % RAINBOW.length] + '"></i>';
+    var row = ''; for (var j = 0; j < 18; j++) row += '<i style="--i:' + j + ';--c:hsl(' + Math.round(j * 20) + ',85%,58%)"></i>';
     S.ending.innerHTML = '<div class="confetti">' + conf + '</div>' +
+      '<div class="ecol">' +
       '<div class="card">' +
-        '<div class="ehero">' + domikun('run') + '</div>' +
+        '<div class="ehero">' + domikun('wave') + '<i class="arm"></i></div>' +
         '<h2 class="rtitle">おめでとう!</h2>' +
-        '<div class="emsg">' + n + '面 ぜんぶ クリア!</div>' +
+        '<div class="ebig">' + n + '</div>' +
+        '<div class="emsg">面 ぜんぶ クリア!</div>' +
         '<div class="estat"><span class="st">★</span> ' + DOMINO.Save.totalStars() + ' / ' + (n * 3) + '<span class="sep"></span>' + coinHTML(sv().coins || 0) + '</div>' +
         '<p class="ethanks">さいごまで あそんでくれて ありがとう!<br>★3 を 集めて、ぜんぶの きせかえを ねらおう</p>' +
         '<button class="btn big" data-act="stages">ステージ選び</button>' +
         '<button class="btn mid ghost" data-act="menu">タイトルへ</button>' +
-      '</div>';
+      '</div>' +
+      '<div class="erow">' + row + '</div></div>';
     show('ending');
   }
 
