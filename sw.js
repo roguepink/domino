@@ -1,10 +1,12 @@
 'use strict';
 /* オフラインでも遊べるようにする(ホーム画面に入れたあと、電波がなくても起動する)。
-   ゲームは index.html 1枚で完結しているので、それと アイコン類だけを覚えておく。
+   ゲームの部品(index.html・css・js・3D の three.js)と アイコン類を覚えておく。
    ゲームを直しただけなら VERSION は そのままでいい(開くたびに、まずネットで最新を取りにいくので)。
    FILES(覚えるファイル)を変えたときだけ VERSION を 1つ上げる(古い覚えを 一斉に捨てる)。 */
-const VERSION = 'domino-v1';
-const FILES = ['./', 'index.html', 'install.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png'];
+const VERSION = 'domino-v2';
+const FILES = [
+  './', 'index.html', 'install.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png', 'css/style.css', 'js/config.js', 'js/level.js', 'js/sim.js', 'js/worlds.js', 'js/stages.js', 'js/save.js', 'js/input.js', 'js/audio.js', 'js/render2d.js', 'js/ui.js', 'js/bot.js', 'js/main.js', 'js/render3d.js', 'vendor/three/build/three.module.min.js', 'vendor/three/build/three.core.js'
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -26,6 +28,6 @@ self.addEventListener('fetch', (e) => {
         if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match('index.html')))
+      .catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('index.html')))
   );
 });

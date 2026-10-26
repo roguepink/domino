@@ -16,7 +16,7 @@ DOMINO.WORLDS = [
   { id: 5, name: 'あぶない森', en: 'forest', news: 'のこぎり・転がる玉・ハンマー / トゲ', finale: 'tree',
     sky: '#2f6b4f', sky2: '#a7d9a0', floor: '#5c8f4a', floor2: '#4f7f3f', wall: '#6b4a2f', accent: '#ffd23f' },
   { id: 6, name: '雪山', en: 'snow', news: '氷の道 / 強い風', finale: 'snowman',
-    sky: '#cfe8ff', sky2: '#ffffff', floor: '#f7fbff', floor2: '#e6f0fa', wall: '#8fb3d9', accent: '#3a7bff' },
+    sky: '#8fb8e6', sky2: '#e8f3ff', floor: '#eef5fc', floor2: '#d3e3f3', wall: '#5f86b8', accent: '#3a7bff' },
   { id: 7, name: 'お祭り', en: 'festival', news: '爆弾ドミノ・こわれるかべ / 音のドミノ / 2列の門', finale: 'fireworks',
     sky: '#2a1b4d', sky2: '#ff8a5c', floor: '#d94f3d', floor2: '#c4402f', wall: '#ffcf5c', accent: '#ff3df0' },
   { id: 8, name: '海', en: 'sea', news: 'しずむ床 / うず(ベルト)', finale: 'lighthouse',

@@ -239,7 +239,7 @@ function makeDomMat(look, pipHex, baseHex, glow) {
   if (look === 'wood') { opt.shininess = 6; opt.specular = 0x111111; }
   else if (look === 'gold') { opt.shininess = 90; opt.specular = 0xffe7a0; }
   else if (look === 'candy') { opt.shininess = 45; opt.specular = 0x999999; }
-  else if (look === 'glass') { opt.shininess = 120; opt.specular = 0xffffff; opt.transparent = true; opt.opacity = 0.62; }
+  else if (look === 'glass') { opt.shininess = 120; opt.specular = 0xffffff; opt.transparent = true; opt.opacity = 0.74; }
   else if (look === 'neon') { opt.shininess = 30; opt.specular = 0x333333; }
   const m = new THREE.MeshPhongMaterial(opt);
   const u = { pipCol: { value: new THREE.Color(pipHex || '#ffffff') }, uGlow: { value: glow || (look === 'neon' ? 0.55 : 0) } };
@@ -682,9 +682,9 @@ function buildStage() {
   buildItems(grp); buildObjs(grp); buildSpecials(grp);
 
   // ゴールの大ドミノ
-  const gz = L.goalZ + 7.5;
-  S.giantDef = { x: 0, z: gz, h: 3.4 };
-  const gW = CFG.DOM_W * 3, gH = 3.4, gT = CFG.DOM_T * 3;
+  const gz = L.goalZ + CFG.GIANT_DZ;
+  S.giantDef = { x: 0, z: gz, h: CFG.GIANT_H };
+  const gW = CFG.DOM_W * 3, gH = CFG.GIANT_H, gT = CFG.DOM_T * 3;
   const giant = new THREE.Mesh(domGeometry(gW, gH, gT), makeDomMat('gloss', '#ffffff', world.accent || '#ff3d7f', 0.06));
   giant.castShadow = true; giant.receiveShadow = true; grp.add(giant); S.giant = giant;
   giant.position.z = -(gz + gT / 2);
@@ -964,10 +964,10 @@ function applyWorldLook() {
   scene.fog = dark ? new THREE.Fog(new THREE.Color(w.sky).getHex(), 10, 42) : new THREE.Fog(fogCol, 38, 120);
   if (w.en === 'festival' || w.en === 'castle') scene.fog = new THREE.Fog(new THREE.Color(w.sky).lerp(new THREE.Color(w.sky2), 0.3), 30, 100);
   R.hemi.color.set(dark ? '#5a6aa8' : '#ffffff'); R.hemi.groundColor.set(dark ? '#1a1830' : new THREE.Color(w.floor2).multiplyScalar(0.7));
-  R.hemi.intensity = dark ? 0.55 : w.en === 'festival' ? 1.5 : 1.9;
+  R.hemi.intensity = dark ? 0.32 : w.en === 'festival' ? 1.5 : 1.9;
   R.sun.color.set(dark ? '#9fb4ff' : w.en === 'festival' ? '#ffc8a0' : '#fff4e0');
-  R.sun.intensity = dark ? 0.55 : 2.3;
-  if (dark) { scene.add(R.lamp); R.lamp.intensity = 26; S.lampOn = true; }
+  R.sun.intensity = dark ? 0.35 : 2.3;
+  if (dark) { scene.add(R.lamp); R.lamp.intensity = 45; R.lamp.distance = 15; R.lamp.decay = 1.2; S.lampOn = true; }
 }
 
 // ---------------------------------------------------------------- ゴールの大仕掛け
@@ -1245,7 +1245,7 @@ function confCol() { return hexToRGB(CONF[Math.floor(Math.random() * CONF.length
 function explode(x, z) {
   for (let k = 0; k < 45; k++) R.glow.emit(x, rnd(0.3, 1.2), z, rnd(-5, 5), rnd(1, 7), rnd(-5, 5), rnd(0.35, 0.7), rnd(0.5, 0.9), k % 3 ? [1, 0.6, 0.15] : [1, 0.95, 0.5], 4, 2.5);
   R.glow.emit(x, 0.8, z, 0, 0, 0, 0.22, 5, [1, 0.85, 0.5], 0, 0);
-  for (let k = 0; k < 16; k++) R.dust.emit(x + rnd(-0.5, 0.5), rnd(0.3, 1), z + rnd(-0.5, 0.5), rnd(-1.5, 1.5), rnd(1, 2.5), rnd(-1.5, 1.5), rnd(1, 1.6), 0.8, [0.32, 0.3, 0.32], -0.3, 1.2, 2.5, 0.85);
+  for (let k = 0; k < 10; k++) R.dust.emit(x + rnd(-0.5, 0.5), rnd(0.3, 1), z + rnd(-0.5, 0.5), rnd(-1.5, 1.5), rnd(1.5, 3), rnd(-1.5, 1.5), rnd(0.7, 1.0), 0.45, [0.55, 0.52, 0.55], -0.5, 1.2, 1.6, 0.6);
   for (let k = 0; k < 8; k++) R.debris.spawn(x, 0.6, z, rnd(-4, 4), rnd(4, 8), rnd(-4, 4), 0.16, 0.16, 0.16, k % 2 ? hexToRGB('#d8342f') : hexToRGB('#2a2228'), 1.4);
   shake(0.25, 0.3); hitstop(0.05);
 }
@@ -1447,7 +1447,7 @@ function updatePlayer(dt, realDt, t) {
   P.root.rotation.y = P.yaw;
   // こわさ
   const fear = st === 'run' && sim.wave.started ? clamp((3.4 - sim.danger) / 2.4, 0, 1) : 0;
-  const lookTarget = st === 'run' && fear > 0.35 && p.stun <= 0 ? 2.5 : 0;
+  const lookTarget = (st === 'run' && fear > 0.35 && p.stun <= 0) || (failed && why === 'caught') ? 2.5 : 0;
   P.look = lerp(P.look, lookTarget, ease(8, dt || 0));
   P.body.rotation.y = P.look;
   // 走る
@@ -1487,11 +1487,11 @@ function updatePlayer(dt, realDt, t) {
   // 負け
   if (failed) {
     lean = 0;
-    if (why === 'caught') { P.root.position.y = 0; sy = Math.max(0.28, 1 - sim.endT * 4); sx = 1 + (1 - sy) * 0.4; }
+    if (why === 'caught') { P.root.position.y = 0; sy = Math.max(0.5, 1 - sim.endT * 3); sx = 1 + (1 - sy) * 0.7; }
     else if (why === 'fall') { P.spin += dt * 6; P.body.rotation.x = P.spin; P.armL.rotation.z = -2.6; P.armR.rotation.z = 2.6; }
   } else { P.spin = 0; P.body.rotation.x = lean; }
   P.body.position.y = bob;
-  P.root.scale.set(sx, Math.max(0.2, sy), sx);
+  P.root.scale.set(sx * 1.22, Math.max(0.2, sy) * 1.22, sx * 1.22);
   // 顔
   let fk = 'run';
   if (failed) fk = why === 'caught' ? 'dead' : 'scared';
@@ -1501,7 +1501,10 @@ function updatePlayer(dt, realDt, t) {
   else if (p.air) fk = 'jump';
   if (fk !== P.faceKind) { P.faceKind = fk; P.faceMat.map = R.faces[fk]; }
   // 夜の灯り
-  if (S.lampOn) R.lamp.position.set(p.x, Math.max(p.y, -3) + 2.4, -p.z + 0.5);
+  if (S.lampOn) {
+    if (RP || st === 'goal' || st === 'clear') { R.lamp.position.set(cam.look.x + 1, 5, cam.look.z + 2); R.lamp.distance = 26; }
+    else { R.lamp.position.set(p.x, Math.max(p.y, -3) + 2.4, -p.z + 0.5); R.lamp.distance = 15; }
+  }
   // 汗
   if (fear > 0.35 && st === 'run') {
     S.sweatAcc += dt * 5;
@@ -1538,13 +1541,13 @@ function updateFX(dt, t) {
     }
   }
   // 風
-  const pz = sim.p.z;
+  const pz = sim.p.z, kind = world.en;
   for (const e of S.objs) {
     if (!e || e.o.t !== 'wind') continue;
     const o = e.o; if (o.z2 < pz - 15 || o.z > pz + 30) continue;
     const dir = (o.per ? (Math.floor(t / o.per) % 2 ? -1 : 1) : 1) * Math.sign(o.f || 2.5);
     S.windAcc += dt * 26;
-    while (S.windAcc > 1) { S.windAcc -= 1; R.dust.emit(-dir * 5.5, rnd(0.2, 2.2), rnd(o.z, o.z2 + 1), dir * rnd(7, 10), rnd(-0.2, 0.2), 0, 1.2, rnd(0.12, 0.2), [1, 1, 1], 0, 0, 0, 0.7); }
+    while (S.windAcc > 1) { S.windAcc -= 1; R.dust.emit(-dir * 5.5, rnd(0.2, 2.2), rnd(o.z, o.z2 + 1), dir * rnd(7, 10), rnd(-0.2, 0.2), 0, 1.2, rnd(0.12, 0.2), kind === 'snow' ? [0.55, 0.72, 0.95] : [1, 1, 1], 0, 0, 0, 0.75); }
   }
   // 音のドミノ
   for (const n of R.notes) { if (!n.visible) continue; n.userData.t += dt; const k = n.userData.t; n.position.y += dt * 1.6; n.material.opacity = Math.max(0, 1 - k / 1.0); const s = 0.6 + Math.min(1, k * 5) * 0.4; n.scale.set(s, s, 1); if (k > 1) n.visible = false; }
@@ -1596,9 +1599,9 @@ function updateCamera(rdt) {
     // 波の先頭が 画面の下に入るように 少し引く(遠すぎる波は 追わない)
     let want = 1;
     const fy = frontScreenY();
-    if (fy != null && st === 'run') { if (fy > 0.9) want = Math.min(1.42, cam.fit + 0.5); else if (fy < 0.8) want = Math.max(1, cam.fit - 0.5); else want = cam.fit; }
-    cam.fit = lerp(cam.fit, want, ease(1.6, rdt));
-    const dd = (st === 'fail' && sim.failReason === 'caught') ? D * 0.72 : D * (1 + 0.15 * fear) * cam.fit;
+    if (fy != null && st === 'run') { if (fy > 0.9) want = Math.min(1.3, cam.fit + 0.5); else if (fy < 0.8) want = Math.max(1, cam.fit - 0.5); else want = cam.fit; }
+    cam.fit = lerp(cam.fit, want, ease(want < cam.fit ? 2.6 : 1.6, rdt));
+    const dd = (st === 'fail' && sim.failReason === 'caught') ? D * 0.72 : D * (1 + 0.1 * fear) * cam.fit;
     const ahead = 3.2 - (cam.fit - 1) * 3;
     look.set(p.x * 0.35, 0.4, -(p.z + ahead));
     pos.set(look.x, look.y + Math.sin(PITCH) * dd, look.z + Math.cos(PITCH) * dd);
@@ -1720,6 +1723,8 @@ function dispose() {
 }
 
 export default { supported, init, setSim, onEvents, render, resize, replay, stopReplay, dispose,
+  _trigger() { if (S && S.finale) { S.finale.reset(); S.giantDbg = realClock; S.finale.trigger(); } },
+  _finaleZ() { return S && S.finale ? S.finale.FZ : 0; },
   _debug() {
     if (!sim || !camera) return null;
     const v = new THREE.Vector3(sim.p.x, 0.6, -sim.p.z).project(camera);

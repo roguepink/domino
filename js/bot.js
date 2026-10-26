@@ -5,6 +5,7 @@
  *       → { clear, time(ゴールした秒), clearT(クリアの秒), minDanger(いちばん近づいた波 m), stockMin(ドミノの残りの最小),
  *           gold(金のドミノ), near(ギリギリ回数), z(進んだ所), why(負けた理由), nodes(調べた数), ms, inputs }
  *       opts = { beam: 幅(32), every: 何コマごとに入力を変えるか(6 = 0.1秒), steers: [左右の強さ], gold: 金のドミノを取りにいく強さ(1),
+ *                near: ギリギリを ねらう強さ(0 = ねらわない。1 にすると ★3 が取れるかを 調べられる),
  *                maxT: 打ち切りの秒(300), retry: 失敗したら幅を広げてもう1回(true) }
  *
  * しくみ: sim は「同じ入力なら同じ結果」なので、数の多い先読み(ビーム探索)で遊ぶ。
@@ -106,6 +107,12 @@ DOMINO.Bot = (function () {
     d = Math.min(d, 14);
     sc += 8 * clamp(d, 0, 3) + 4 * clamp(d - 3, 0, 3) + 1.5 * clamp(d - 6, 0, 4) + 0.3 * clamp(d - 10, 0, 4);
     if (d < 1.2) sc -= (1.2 - d) * 40;
+    if (node.nw) {                  // ギリギリねらい: 波に近づいて → にげる を くり返す
+      var ng = s.cfg.nearGoal;
+      sc += Math.min(s.nearCount, ng) * 300 * node.nw;
+      // ギリギリの中にいる → 2.4m より はなれて「出る」/ 外にいる → 1.6m より 近づいて「入る」
+      if (s.nearCount < ng && s.wave.started) sc += s.inNear ? -Math.max(0, 2.7 - d) * 20 : 60 - Math.max(0, d - 1.3) * 12;
+    }
     var rem = Math.max(0, s.level.goalZ + 0.5 - p.z), need = rem * 2 + 4, stock = s.stock;
     sc += 1.0 * Math.min(stock, need) + 0.15 * Math.max(0, stock - need);
     if (stock < 8) sc -= (8 - stock) * 15;
@@ -216,7 +223,7 @@ DOMINO.Bot = (function () {
       if (c.state !== 'run') break;
     }
     var ch = { sim: c, parent: node, a: act, t: node.t + 1, minD: minD, stockMin: stockMin,
-      nd: node.nd, cut: node.cut, swm: node.swm, swc: node.swc, bmm: node.bmm, bmc: node.bmc, jumps: node.jumps + (act.j >= 0 ? 1 : 0) };
+      nd: node.nd, cut: node.cut, nw: node.nw, swm: node.swm, swc: node.swc, bmm: node.bmm, bmc: node.bmc, jumps: node.jumps + (act.j >= 0 ? 1 : 0) };
     scanNew(ch, info);
     ch.score = evaluate(ch, info, gw);
     return ch;
@@ -247,7 +254,7 @@ DOMINO.Bot = (function () {
 
   function search(start, opts, info) {
     var W = opts.beam, every = opts.every, steers = opts.steers, gw = opts.gold;
-    var root = { sim: start, parent: null, a: null, t: 0, minD: 99, stockMin: start.stock, nd: 0, cut: 0, swm: 0, swc: 0, bmm: 0, bmc: 0, jumps: 0 };
+    var root = { sim: start, parent: null, a: null, t: 0, minD: 99, stockMin: start.stock, nd: 0, cut: 0, nw: opts.near || 0, swm: 0, swc: 0, bmm: 0, bmc: 0, jumps: 0 };
     scanNew(root, info);
     root.score = evaluate(root, info, gw);
     var beam = [root], nodes = 0, best = root, maxGen = Math.ceil(opts.maxT / (every * C.DT));
@@ -293,7 +300,7 @@ DOMINO.Bot = (function () {
   function defaults(opts) {
     opts = opts || {};
     return { beam: opts.beam || 32, every: opts.every || 6, steers: opts.steers || [-1, -0.5, 0, 0.5, 1],
-      gold: opts.gold != null ? opts.gold : 1, maxT: opts.maxT || 300, retry: opts.retry !== false, deadline: opts.deadline || 0, trace: opts.trace };
+      gold: opts.gold != null ? opts.gold : 1, near: opts.near || 0, maxT: opts.maxT || 300, retry: opts.retry !== false, deadline: opts.deadline || 0, trace: opts.trace };
   }
 
   // 1面を最後まで遊ぶ

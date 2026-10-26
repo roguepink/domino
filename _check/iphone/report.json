@@ -2,7 +2,7 @@
  "results": [
   {
    "device": "iPhone_SE",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -12,30 +12,8 @@
    "ok": true
   },
   {
-   "device": "iPhone_SE",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_SE-1.png",
-   "ok": true
-  },
-  {
-   "device": "iPhone_SE",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_SE-2.png",
-   "ok": true
-  },
-  {
    "device": "iPhone_8_SE2",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -45,30 +23,8 @@
    "ok": true
   },
   {
-   "device": "iPhone_8_SE2",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_8_SE2-1.png",
-   "ok": true
-  },
-  {
-   "device": "iPhone_8_SE2",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_8_SE2-2.png",
-   "ok": true
-  },
-  {
    "device": "iPhone_15",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -78,30 +34,8 @@
    "ok": true
   },
   {
-   "device": "iPhone_15",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_15-1.png",
-   "ok": true
-  },
-  {
-   "device": "iPhone_15",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_15-2.png",
-   "ok": true
-  },
-  {
    "device": "iPhone_15_ProMax",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -111,30 +45,8 @@
    "ok": true
   },
   {
-   "device": "iPhone_15_ProMax",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_15_ProMax-1.png",
-   "ok": true
-  },
-  {
-   "device": "iPhone_15_ProMax",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_15_ProMax-2.png",
-   "ok": true
-  },
-  {
    "device": "iPhone_LINE",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -144,30 +56,8 @@
    "ok": true
   },
   {
-   "device": "iPhone_LINE",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_LINE-1.png",
-   "ok": true
-  },
-  {
-   "device": "iPhone_LINE",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_LINE-2.png",
-   "ok": true
-  },
-  {
    "device": "iPhone_保存できない",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -177,65 +67,19 @@
    "ok": true
   },
   {
-   "device": "iPhone_保存できない",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_保存できない-1.png",
-   "ok": true
-  },
-  {
-   "device": "iPhone_保存できない",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_保存できない-2.png",
-   "ok": true
-  },
-  {
    "device": "Android_Pixel7",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
-   "errors": [
-    "console: Failed to load resource: the server responded with a status of 404 (File not found)"
-   ],
+   "errors": [],
    "fails": [],
    "shot": "/Users/nobu/claude-work/domino/_check/iphone/Android_Pixel7-0.png",
-   "ok": false
-  },
-  {
-   "device": "Android_Pixel7",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/Android_Pixel7-1.png",
-   "ok": true
-  },
-  {
-   "device": "Android_Pixel7",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/Android_Pixel7-2.png",
    "ok": true
   },
   {
    "device": "Android_LINE",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
@@ -245,60 +89,14 @@
    "ok": true
   },
   {
-   "device": "Android_LINE",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/Android_LINE-1.png",
-   "ok": true
-  },
-  {
-   "device": "Android_LINE",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/Android_LINE-2.png",
-   "ok": true
-  },
-  {
    "device": "iPhone_古い(iOS15)",
-   "path": "?a=1#noinstall",
+   "path": "?a=1#play=2&auto&noinstall",
    "load": true,
    "blank": false,
    "overflow": 0,
    "errors": [],
    "fails": [],
    "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_古い(iOS15)-0.png",
-   "ok": true,
-   "note": "動かないファイル: vendor/three/build/three.core.js"
-  },
-  {
-   "device": "iPhone_古い(iOS15)",
-   "path": "?a=2#play=1&go",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_古い(iOS15)-1.png",
-   "ok": true,
-   "note": "動かないファイル: vendor/three/build/three.core.js"
-  },
-  {
-   "device": "iPhone_古い(iOS15)",
-   "path": "?a=3",
-   "load": true,
-   "blank": false,
-   "overflow": 0,
-   "errors": [],
-   "fails": [],
-   "shot": "/Users/nobu/claude-work/domino/_check/iphone/iPhone_古い(iOS15)-2.png",
    "ok": true,
    "note": "動かないファイル: vendor/three/build/three.core.js"
   }

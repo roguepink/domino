@@ -12,6 +12,7 @@
     波     = いちばん近づいた波(m)。小さいほど ハラハラ(1.6 未満 = ギリギリ)
     残り   = ドミノの残りの いちばん少なかった数。0 に近いほど 箱が大事
     金     = 取れた金のドミノ / 置いてある数。 ギリ = ギリギリの回数
+    ★2 ★3 = 金ねらい・ギリギリねらいの ボットで ★2・★3 が取れたか(×の数字 = 取れた数)。--fast で とばす
     らく   = --rough のとき、弱いボットでもクリアできたか(○ ならだれでも ★1 を取りやすい)
   地図の書き方のまちがい(はばが 9 でない・金のドミノが 3 つでない・S や G がない など)も 先に知らせる。
   ※ 音は出ない(--mute-audio)。Mac の画面もつけない(headless)。
@@ -83,6 +84,13 @@ async def worker(page, queue, results, opts, rough, total, t_start):
           var st = DOMINO.STAGES.filter(function (s) { return s.id === id; })[0];
           var r = DOMINO.Bot.solve(st, opts); delete r.inputs;
           if (rough) { var q = DOMINO.Bot.solve(st, { beam: 4, every: 12, steers: [-1, 0, 1], gold: 0, retry: false }); r.rough = q.clear; r.roughZ = q.z; }
+          if (opts.stars) {   // ★2・★3 が取れるか(金ねらい・ギリギリねらいで もう一度)
+            var g = r.gold >= r.goldTotal ? r : DOMINO.Bot.solve(st, { beam: 64, gold: 4 });
+            r.goldMax = g.clear ? g.gold : 0;
+            var n = DOMINO.Bot.solve(st, { beam: 48, gold: 0, near: 1 });
+            r.nearMax = n.clear ? n.near : 0; r.nearGoal = st.nearGoal || 3;
+          }
+          delete r.inputs;
           return r;
         }"""
         try:
@@ -142,7 +150,7 @@ async def run(a):
         for i in sorted(ids, key=lambda i: -info[i]["rows"]):
             q.put_nowait(i)
         results = {}
-        opts = {"beam": a.beam}
+        opts = {"beam": a.beam, "stars": not a.fast}
         t0 = time.time()
         await asyncio.gather(*[worker(pg, q, results, opts, a.rough, len(ids), t0) for pg in pages])
         print("", file=sys.stderr)
@@ -150,7 +158,7 @@ async def run(a):
     srv.shutdown()
 
     # 表
-    head = ["番号", "名前", "長さ", "クリア", "時間", "波", "残り", "金", "ギリ", "調べ秒"]
+    head = ["番号", "名前", "長さ", "クリア", "時間", "波", "残り", "金", "ギリ", "★2", "★3", "調べ秒"]
     if a.rough:
         head.append("らく")
     rows = []
@@ -162,7 +170,10 @@ async def run(a):
         cl = "○" if ok else "× " + str(r.get("why", "")) + f" z{r.get('z', 0)}/{r.get('goalZ', 0)}"
         row = [str(i), x["name"], str(r.get("goalZ", x["rows"])), cl, f"{r.get('time', 0):.1f}",
                f"{r.get('minDanger', 0):.1f}", str(r.get("stockMin", "")),
-               f"{r.get('gold', 0)}/{r.get('goldTotal', 0)}", str(r.get("near", 0)), f"{r.get('ms', 0) / 1000:.1f}"]
+               f"{r.get('gold', 0)}/{r.get('goldTotal', 0)}", str(r.get("near", 0)),
+               ("○" if r.get("goldMax", 0) >= max(1, r.get("goldTotal", 3)) else f"×{r.get('goldMax', 0)}") if "goldMax" in r else "-",
+               ("○" if r.get("nearMax", 0) >= r.get("nearGoal", 3) else f"×{r.get('nearMax', 0)}") if "nearMax" in r else "-",
+               f"{r.get('ms', 0) / 1000:.1f}"]
         if a.rough:
             row.append("○" if r.get("rough") else f"× z{r.get('roughZ', 0)}")
         rows.append(row)
@@ -176,6 +187,10 @@ async def run(a):
         last_w = w
         print("  ".join(pad(c, ws[k]) for k, c in enumerate(r)))
     print(f"\nクリア {cleared}/{len(ids)} 面")
+    if not a.fast:
+        g2 = sum(1 for i in ids if results.get(i, {}).get("goldMax", 0) >= 3)
+        g3 = sum(1 for i in ids if results.get(i, {}).get("nearMax", 0) >= results.get(i, {}).get("nearGoal", 3))
+        print(f"★2(金3つ)が取れる {g2}/{len(ids)} 面 / ★3(ギリギリ)が取れる {g3}/{len(ids)} 面")
     if a.rough:
         print(f"弱いボットでもクリア {sum(1 for i in ids if results.get(i, {}).get('rough'))}/{len(ids)} 面")
     if errors:
@@ -196,6 +211,7 @@ def main():
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--beam", type=int, default=32)
     ap.add_argument("--rough", action="store_true")
+    ap.add_argument("--fast", action="store_true", help="★2・★3 の確かめを しない")
     ap.add_argument("--json", default="")
     a = ap.parse_args()
     sys.exit(asyncio.run(run(a)))

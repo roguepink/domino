@@ -45,7 +45,7 @@ sim.js に新しい仕掛けが要るときは、まとめ役に頼む(勝手に
 - `sim.items[]` {t:'box'|'bigbox'|'star'|'coin', x, z, n, taken}。star = 金のドミノ(1面に3つ)
 - `sim.specials[]` {t:'bomb'|'big'|'note', x, z, done, t0}。`sim.objs[]` 仕掛け(sim.js の _stepObjs の説明)。`hx, hz` = 今の位置
 - `sim.rivals[]` 前から倒れてくる列のドミノ {x, z, t0}(ゴール側 → 手前へ倒れる)
-- `sim.giant` ゴールの大ドミノ {x, z, h, t0}。`sim.level` 地図(level.js)。`sim.cellAt(x,z)` マスの種類(DOMINO.Level.T)
+- `sim.giant` ゴールの大ドミノ {x, z, h, t0}(位置は goalZ + CONFIG.GIANT_DZ、高さ CONFIG.GIANT_H)。`sim.brokenAt` 列が切れた所のドミノ番号。`sim.level` 地図(level.js)。`sim.cellAt(x,z)` マスの種類(DOMINO.Level.T)
 - `sim.gateOpen[g]` `sim.gateT[g]` 門 / `sim.broken[]` こわれたかべのマス番号 / `sim.sunk(z)` しずむ床が今しずんでいるか
 - `sim.score` `sim.stock` `sim.combo` `sim.stars`(取った金のドミノ) `sim.starsTotal` `sim.nearCount` `sim.cfg.nearGoal` `sim.progress` 0..1
 - `sim.events[]` その1/60秒に起きたこと。main が1コマ分をまとめて、各係の `onEvents(list, sim)` に渡す(種類は sim.js の先頭)
