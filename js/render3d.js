@@ -690,6 +690,19 @@ function buildStage() {
   giant.position.z = -(gz + gT / 2);
   S.finale = buildFinale(world.finale || 'tower', gz);
   grp.add(S.finale.grp);
+  // コースの横のはしの柵(sim 側では かべ。L.rail のとき)。はしのマスが床の行だけ、低い柵を置く
+  if (L.rail) {
+    const segs = [];
+    for (let r = 0; r < rows; r++) for (const c of [0, cols - 1]) {
+      const t = L.cell[r * cols + c];
+      if (t !== T.HOLE) segs.push([c === 0 ? -cols / 2 - 0.08 : cols / 2 + 0.08, r + 0.5]);
+    }
+    if (segs.length) {
+      const rm = new THREE.InstancedMesh(new THREE.BoxGeometry(0.16, 0.34, 1.0), new THREE.MeshLambertMaterial({ color: world.wall || '#c98b5a' }), segs.length);
+      segs.forEach((q, k) => rm.setMatrixAt(k, tmpM.makeTranslation(q[0], 0.17, -q[1])));
+      rm.castShadow = true; rm.receiveShadow = true; grp.add(rm);
+    }
+  }
   // ゴールの旗
   const poleGeo = new THREE.CylinderGeometry(0.06, 0.06, 2.6, 8), poleMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
   const flagTex = ctex(canvas(64, 40, (g) => { for (let a = 0; a < 8; a++) for (let b2 = 0; b2 < 5; b2++) { g.fillStyle = (a + b2) % 2 ? '#111' : '#fff'; g.fillRect(a * 8, b2 * 8, 8, 8); } }));

@@ -72,6 +72,8 @@ DOMINO.Level = (function () {
     return {
       stage: stage, cols: cols, rows: rows, cell: cell, group: group, weak: weak, items: items,
       start: start, goalZ: goalZ,
+      // コースの横のはしの柵(空の島 W4 と stage.edge === 'open' の面には ない = 落ちる)
+      rail: stage.edge ? stage.edge !== 'open' : (stage.world || Math.ceil(stage.id / 10)) !== 4,
       halfW: cols / 2,
       // (x, z) のマスの番号。コースの外は -1
       index: function (x, z) {
@@ -81,7 +83,9 @@ DOMINO.Level = (function () {
       },
       at: function (x, z) {
         var i = this.index(x, z);
-        return i < 0 ? (z >= rows ? T.FLOOR : T.HOLE) : this.cell[i];   // ゴールの先は床、横の外は穴
+        if (i >= 0) return this.cell[i];
+        if (z >= rows) return T.FLOOR;                 // ゴールの先は広場(床)
+        return this.rail && z >= 0 ? T.WALL : T.HOLE;  // 横の外: 柵がある面は かべ、ない面(空の島)は 穴
       }
     };
   }

@@ -346,7 +346,7 @@ DOMINO.Bot = (function () {
     if (live.sim !== sim) {
       live.sim = sim; live.plan = null; live.cur = null;
       if (sim.t < C.DT / 2) {
-        var res = solve(sim.stage, { beam: 24, maxT: 200 }, sim);
+        var res = solve(sim.stage, { beam: 24, maxT: 200, retry: false }, sim);   // 長い面だと 数秒かかる(#auto のときだけ)
         live.plan = res.inputs; live.every = res.every; live.base = 0;
       }
     }

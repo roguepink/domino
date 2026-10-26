@@ -40,6 +40,7 @@ DOMINO.Sim = (function () {
       run: stage.run || C.RUN,
       delay: w.delay != null ? w.delay : C.WAVE_DELAY,
       v0: w.v0 || C.WAVE_V0, acc: w.acc != null ? w.acc : C.WAVE_ACC, max: w.max || C.WAVE_MAX,
+      far: w.far || C.WAVE_FAR, catchup: w.catchup != null ? w.catchup : C.WAVE_CATCHUP,
       nearGoal: stage.nearGoal || 3,
       sinkPeriod: stage.sinkPeriod || 3.2      // しずむ床(f)の1回分の秒
     };
@@ -157,7 +158,7 @@ DOMINO.Sim = (function () {
       if (dom.gap > C.REACH && this.p.jumped && !free) {
         var need = Math.ceil(dom.gap);
         if (this.stock >= need) {
-          prev.tall = Math.min(4.5, dom.gap + 0.3);
+          prev.tall = Math.min(7, dom.gap + 0.3);
           this.stock -= need; this.stockUsed += need;
           this._emit('bridge', { i: prev.n });
         }
@@ -351,6 +352,7 @@ DOMINO.Sim = (function () {
     var d = this.doms, p = this.p, maxS = -1;
     var v = this.wave.v;
     if (this.state === 'goal' || this.state === 'clear') v = Math.max(v, 8);   // ゴールのあとは 少し急いで 見せ場へ
+    else if (this.danger < 90 && this.danger > this.cfg.far) v += (this.danger - this.cfg.far) * this.cfg.catchup;   // 遠すぎると 追い上げる
     if (this.wave.hold > 0) { this.wave.hold -= dt; v = 0; }                  // お助けの直後は 少し止まる
     for (var f = 0; f < this.fronts.length; f++) {
       var fr = this.fronts[f];
@@ -369,6 +371,7 @@ DOMINO.Sim = (function () {
           // 最後の1枚まで倒れた: 主人公が近ければ つかまる。遠ければ チェーンが切れた
           var last = d[d.length - 1], gapP = Math.hypot(p.x - last.x, p.z - last.z);
           if (p.safe > 0) { /* お助けの間は待つ */ }
+          else if (p.air && p.jumped && !this._ground(p.x, p.z)) { /* 穴の上をジャンプ中: 着地して橋ドミノがかかるまで 待つ */ }
           else if (gapP <= reachOf(last) && p.y < 1.2) { fr.dead = true; this._fail('caught'); }
           else if (gapP > reachOf(last) + 0.01) { fr.dead = true; this.brokenAt = last.n; this._fail(this.stock <= 0 ? 'empty' : 'broken'); }
         } else if (this.state === 'goal' && p.done) {

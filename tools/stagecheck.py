@@ -87,8 +87,12 @@ async def worker(page, queue, results, opts, rough, total, t_start):
           if (opts.stars) {   // ★2・★3 が取れるか(金ねらい・ギリギリねらいで もう一度)
             var g = r.gold >= r.goldTotal ? r : DOMINO.Bot.solve(st, { beam: 64, gold: 4 });
             r.goldMax = g.clear ? g.gold : 0;
-            var n = DOMINO.Bot.solve(st, { beam: 48, gold: 0, near: 1 });
-            r.nearMax = n.clear ? n.near : 0; r.nearGoal = st.nearGoal || 3;
+            r.nearGoal = st.nearGoal || 3; r.nearMax = 0;
+            [1, 0.5].forEach(function (nw) {
+              if (r.nearMax >= r.nearGoal) return;
+              var n = DOMINO.Bot.solve(st, { beam: 48, gold: 0, near: nw });
+              if (n.clear && n.near > r.nearMax) r.nearMax = n.near;
+            });
           }
           delete r.inputs;
           return r;
