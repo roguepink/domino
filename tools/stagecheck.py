@@ -83,7 +83,7 @@ async def worker(page, queue, results, opts, rough, total, t_start):
         js = """([id, opts, rough]) => {
           var st = DOMINO.STAGES.filter(function (s) { return s.id === id; })[0];
           var r = DOMINO.Bot.solve(st, opts); delete r.inputs;
-          if (rough) { var q = DOMINO.Bot.solve(st, { beam: 4, every: 12, steers: [-1, 0, 1], gold: 0, retry: false }); r.rough = q.clear; r.roughZ = q.z; }
+          if (rough) { var q = DOMINO.Bot.solve(st, { beam: 4, every: 12, steers: [-1, 0, 1], gold: 0, retry: false }); r.rough = q.clear; r.roughZ = q.z; r.roughWhy = q.why; }
           if (opts.stars) {   // ★2・★3 が取れるか(金ねらい・ギリギリねらいで もう一度)
             var g = r.gold >= r.goldTotal ? r : DOMINO.Bot.solve(st, { beam: 64, gold: 4 });
             r.goldMax = g.clear ? g.gold : 0;
@@ -179,7 +179,7 @@ async def run(a):
                ("○" if r.get("nearMax", 0) >= r.get("nearGoal", 3) else f"×{r.get('nearMax', 0)}") if "nearMax" in r else "-",
                f"{r.get('ms', 0) / 1000:.1f}"]
         if a.rough:
-            row.append("○" if r.get("rough") else f"× z{r.get('roughZ', 0)}")
+            row.append("○" if r.get("rough") else f"× {r.get('roughWhy', '')} z{r.get('roughZ', 0)}")
         rows.append(row)
     ws = [max(width(h), *(width(r[k]) for r in rows)) if rows else width(h) for k, h in enumerate(head)]
     print("  ".join(pad(h, ws[k]) for k, h in enumerate(head)))

@@ -435,11 +435,12 @@ DOMINO.UI = (function () {
   function showResult(res, sim) {
     clearTimers();
     hideHud();
-    if (!res.clear) { showFail(res); return; }
-    // まず 空からのリプレイ(あれば)
+    if (!res.clear) { showFail(res, sim); return; }
+    // 空からのリプレイは「はじめてのクリア」「新記録」「10面目」のときだけ(毎回だと 待たされる)
     var Rd = DOMINO.Render, done = false;
-    var go = function () { if (done) return; done = true; if (Rd && Rd.stopReplay) try { Rd.stopReplay(); } catch (e) {} showClear(res); };
-    if (Rd && typeof Rd.replay === 'function' && Rd.replay.length > 0) {
+    var want = !res.prevStars || res.newRecord || res.stage.id % 10 === 0;
+    var go = function () { if (done) return; done = true; if (Rd && Rd.stopReplay) try { Rd.stopReplay(); } catch (e) {} showClear(res, sim); };
+    if (want && Rd && typeof Rd.replay === 'function' && Rd.replay.length > 0) {
       S.replay.innerHTML = '<div class="rtag">🎥 リプレイ</div><button class="btn skip" data-act="skipReplay">とばす ▶▶</button>';
       S.replay._go = go;
       show('replay');
@@ -458,8 +459,9 @@ DOMINO.UI = (function () {
     DOMINO.Save.write();
     return got;
   }
-  function showClear(res) {
-    var st = res.stage, nextOk = stageExistsAfter(st);
+  function showClear(res, sim) {
+    var st = res.stage, nextOk = stageExistsAfter(st), fin = !nextOk && allCleared();
+    var coinsGot = (sim && sim.coins || 0) + res.stars * 5;
     var c1 = true, c2 = res.goldTotal > 0 && res.goldGot >= res.goldTotal, c3 = res.near >= res.nearGoal;
     var conds = [c1, c2, c3];
     var got = newSkins(res);
@@ -475,10 +477,12 @@ DOMINO.UI = (function () {
         '</div>' +
         '<div class="rscore"><span id="rScore">0</span><small> 点</small></div>' +
         '<div class="rrec">' + (res.newRecord ? '<span class="newrec">新記録!</span>' : 'さいこう ' + fmt(res.best) + ' 点') + '</div>' +
-        '<div class="rstat"><span>倒した ドミノ <b>' + res.dominoes + '</b></span></div>' +
+        (res.beatGhost ? '<div class="rghost">👻 前の自分に 勝った!</div>' : '') +
+        '<div class="rstat"><span>倒した ドミノ <b>' + res.dominoes + '</b></span><span class="rcoin">' + coinHTML(coinsGot).replace('<i class="ico cn"></i>', '<i class="ico cn"></i>+') + '</span></div>' +
         (got.length ? '<div class="rskin">🎨 きせかえ「' + esc(got[got.length - 1].name) + '」が 手に入った!</div>' : '') +
         (nextOk ? '<button class="btn big next" data-act="next">つぎへ ▶</button>' :
-          '<div class="rsoon">つぎの面は じゅんび中です</div><button class="btn big next" data-act="stagesFromResult">ステージ選び</button>') +
+          fin ? '<button class="btn big next" data-act="ending">🎉 エンディング</button>' :
+          '<div class="rsoon">' + (stageById(playTarget()) ? 'まだ クリアしていない面が あるよ' : 'つぎの面は じゅんび中です') + '</div><button class="btn big next" data-act="stagesFromResult">ステージ選び</button>') +
         '<div class="rrow"><button class="btn mid" data-act="retry">↻ もう1回</button>' +
           (nextOk ? '<button class="btn mid ghost" data-act="stagesFromResult">ステージ選び</button>' : '') + '</div>' +
       '</div>';
@@ -499,8 +503,8 @@ DOMINO.UI = (function () {
   }
   function stageExistsAfter(st) { var a = stages(), i = a.indexOf(st); return i >= 0 && i < a.length - 1; }
 
-  function showFail(res) {
-    var r = REASON[res.reason] || { t: 'ざんねん!', h: '' }, pct = Math.round((res.progress || 0) * 100);
+  function showFail(res, sim) {
+    var r = { t: REASON[res.reason] || 'ざんねん!', h: hintFor(res.reason, sim && sim.failHint || '') }, pct = Math.round((res.progress || 0) * 100);
     var left = 100 - pct;
     S.result.className = 'scr s-result fail';
     S.result.innerHTML =
@@ -519,25 +523,70 @@ DOMINO.UI = (function () {
     show('result');
   }
 
+  // ---------- エンディング(全部の面を クリア) ----------
+  function openEnding() {
+    var n = stages().length, conf = '';
+    for (var i = 0; i < 24; i++) conf += '<i style="--i:' + i + ';--x:' + ((i * 37) % 100) + '%;--c:' + RAINBOW[i % RAINBOW.length] + '"></i>';
+    S.ending.innerHTML = '<div class="confetti">' + conf + '</div>' +
+      '<div class="card">' +
+        '<div class="ehero">' + domikun('run') + '</div>' +
+        '<h2 class="rtitle">おめでとう!</h2>' +
+        '<div class="emsg">' + n + '面 ぜんぶ クリア!</div>' +
+        '<div class="estat"><span class="st">★</span> ' + DOMINO.Save.totalStars() + ' / ' + (n * 3) + '<span class="sep"></span>' + coinHTML(sv().coins || 0) + '</div>' +
+        '<p class="ethanks">さいごまで あそんでくれて ありがとう!<br>★3 を 集めて、ぜんぶの きせかえを ねらおう</p>' +
+        '<button class="btn big" data-act="stages">ステージ選び</button>' +
+        '<button class="btn mid ghost" data-act="menu">タイトルへ</button>' +
+      '</div>';
+    show('ending');
+  }
+
   // ---------- 着せかえ ----------
   function skinColors(k, n) {
     var a = [];
     for (var i = 0; i < n; i++) a.push(k.colors === 'rainbow' ? 'hsl(' + Math.round(i * 360 / n) + ',85%,58%)' : k.colors[i % k.colors.length]);
     return a;
   }
+  var skinTab = 'dom', buyWant = '';
   function openSkins() {
-    var total = DOMINO.Save.totalStars(), html = '';
-    for (var i = 0; i < DOMINO.SKINS.length; i++) {
-      var k = DOMINO.SKINS[i], have = total >= k.cost, on = sv().skin === k.id, cols = skinColors(k, 5), row = '';
-      if (have) sv().skins[k.id] = true;
-      for (var j = 0; j < 5; j++) row += '<i style="--c:' + cols[j] + ';--p:' + k.pip + '"></i>';
-      html += '<button class="skin look-' + k.look + (have ? '' : ' lock') + (on ? ' on' : '') + '" data-act="skin" data-id="' + k.id + '"' + (have ? '' : ' disabled') + '>' +
-        '<span class="sprev">' + row + '</span><span class="sname">' + esc(k.name) + '</span>' +
-        '<span class="sstate">' + (on ? '✔ つかっている' : have ? 'えらぶ' : '🔒 ★' + k.cost + 'で 手に入る') + '</span></button>';
+    var total = DOMINO.Save.totalStars(), coins = sv().coins || 0, html = '', i;
+    if (skinTab === 'dom') {
+      for (i = 0; i < DOMINO.SKINS.length; i++) {
+        var k = DOMINO.SKINS[i], have = total >= k.cost, on = sv().skin === k.id, cols = skinColors(k, 5), row = '';
+        if (have) sv().skins[k.id] = true;
+        for (var j = 0; j < 5; j++) row += '<i style="--c:' + cols[j] + ';--p:' + k.pip + '"></i>';
+        html += '<button class="skin look-' + k.look + (have ? '' : ' lock') + (on ? ' on' : '') + '" data-act="skin" data-id="' + k.id + '"' + (have ? '' : ' disabled') + '>' +
+          (have ? '' : '<span class="lockb">🔒</span>') +
+          '<span class="sprev">' + row + '</span><span class="sname">' + esc(k.name) + '</span>' +
+          '<span class="sstate">' + (on ? '✔ つかっている' : have ? 'えらぶ' : '★' + k.cost + 'で 手に入る<small>あと ★' + (k.cost - total) + '</small>') + '</span></button>';
+      }
+    } else {
+      for (i = 0; i < DOMINO.HATS.length; i++) {
+        var hh = DOMINO.HATS[i], own = !!sv().hats[hh.id], wear = sv().hat === hh.id, can = coins >= hh.cost, want = buyWant === hh.id;
+        var state = wear ? '✔ かぶっている' : own ? 'かぶる' : want ? 'もう一度 押すと 買う' : '<i class="ico cn"></i>' + hh.cost + (can ? ' で 買う' : '<small>あと ' + (hh.cost - coins) + '</small>');
+        html += '<button class="skin hatc' + (own ? '' : can ? ' buy' : ' lock') + (wear ? ' on' : '') + (want ? ' want' : '') + '" data-act="hat" data-id="' + hh.id + '">' +
+          (own || can ? '' : '<span class="lockb">🔒</span>') +
+          hatPreview(hh) + '<span class="sname">' + esc(hh.name) + '</span><span class="sstate">' + state + '</span></button>';
+      }
     }
-    S.skins.innerHTML = '<div class="bar"><button class="btn back" data-act="menu">◀ もどる</button><b>きせかえ</b><span class="bstars"><span class="st">★</span> ' + total + '</span></div>' +
-      '<div class="scroll pad"><p class="lead">★を 集めると、ドミノの いろ・もようが 手に入るよ</p><div class="skins">' + html + '</div></div>';
+    S.skins.innerHTML = '<div class="bar"><button class="btn back" data-act="menu">◀ もどる</button><b>きせかえ</b><span class="bstars">' +
+      (skinTab === 'dom' ? '<span class="st">★</span> ' + total : coinHTML(coins)) + '</span></div>' +
+      '<div class="scroll pad"><div class="tabs"><button class="tab' + (skinTab === 'dom' ? ' on' : '') + '" data-act="skinTab" data-id="dom">ドミノの いろ</button>' +
+        '<button class="tab' + (skinTab === 'hat' ? ' on' : '') + '" data-act="skinTab" data-id="hat">ドミくんの ぼうし</button></div>' +
+      '<p class="lead">' + (skinTab === 'dom' ? '★を 集めると、ドミノの いろ・もようが 手に入るよ' : 'コインで ドミくんの ぼうしが 買えるよ。コインは クリアと ★で ふえる') + '</p>' +
+      '<div class="skins">' + html + '</div></div>';
+    var sc = S.skins.querySelector('.scroll'); if (sc && openSkins._top) sc.scrollTop = openSkins._top;
     show('skins');
+  }
+  function tapHat(id) {
+    var hh = null; for (var i = 0; i < DOMINO.HATS.length; i++) if (DOMINO.HATS[i].id === id) hh = DOMINO.HATS[i];
+    if (!hh) return;
+    var d = sv();
+    if (d.hats[id]) { d.hat = id; buyWant = ''; saveHats(); }
+    else if ((d.coins || 0) < hh.cost) { buyWant = ''; toast('コインが あと ' + (hh.cost - (d.coins || 0)) + ' 足りないよ'); }
+    else if (buyWant !== id) { buyWant = id; }
+    else { d.coins -= hh.cost; d.hats[id] = true; d.hat = id; buyWant = ''; saveHats(); toast(hh.name + 'を 買った!'); }
+    var sc = S.skins.querySelector('.scroll'); openSkins._top = sc ? sc.scrollTop : 0;
+    openSkins(); openSkins._top = 0;
   }
 
   // ---------- せってい ----------
@@ -586,9 +635,12 @@ DOMINO.UI = (function () {
   function act(name, b, e) {
     unlock();
     switch (name) {
-      case 'play': goFull(); var t = playTarget(); if (t) G.play(t); else { openStages(); toast('つぎの面は じゅんび中です'); } break;
+      case 'play': goFull(); var t = playTarget(); if (t) G.play(t); else if (allCleared()) openEnding(); else { openStages(); toast('つぎの面は じゅんび中です'); } break;
       case 'stages': openStages(); break;
-      case 'skins': openSkins(); break;
+      case 'skins': buyWant = ''; openSkins(); break;
+      case 'skinTab': skinTab = b.getAttribute('data-id'); buyWant = ''; openSkins(); break;
+      case 'hat': tapHat(b.getAttribute('data-id')); break;
+      case 'ending': openEnding(); break;
       case 'settings': resetStep = 0; openSettings(); break;
       case 'menu': G.toMenu(); break;
       case 'stage': goFull(); G.play(+b.getAttribute('data-id')); break;
@@ -602,10 +654,10 @@ DOMINO.UI = (function () {
       case 'skip': G.skip(); break;
       case 'skipReplay': if (S.replay._go) S.replay._go(); break;
       case 'toggle': setToggle(b.getAttribute('data-key')); break;
-      case 'skin': sv().skin = b.getAttribute('data-id'); DOMINO.Save.write(); openSkins(); break;
+      case 'skin': sv().skin = b.getAttribute('data-id'); DOMINO.Save.write(); var sc0 = S.skins.querySelector('.scroll'); openSkins._top = sc0 ? sc0.scrollTop : 0; openSkins(); openSkins._top = 0; break;
       case 'reset1': resetStep = 1; $('resetZone').innerHTML = resetHTML(); break;
       case 'reset2': resetStep = 2; $('resetZone').innerHTML = resetHTML(); break;
-      case 'reset3': resetStep = 0; DOMINO.Save.reset(); openSettings(); toast('データを 消しました'); break;
+      case 'reset3': resetStep = 0; DOMINO.Save.reset(); sv().hats = { none: true }; sv().hat = 'none'; saveHats(); openSettings(); toast('データを 消しました'); break;
       case 'resetNo': resetStep = 0; $('resetZone').innerHTML = resetHTML(); break;
     }
   }
@@ -628,7 +680,7 @@ DOMINO.UI = (function () {
     window.addEventListener('keydown', function (e) {
       if (e.repeat) return;
       if (e.code !== 'Space' && e.code !== 'Enter') return;
-      if (G.state === 'intro' && cur === 'intro') { unlock(); G.go(); e.preventDefault(); }
+      if (G.state === 'intro' && cur === 'intro') { e.preventDefault(); if (Date.now() - (S.intro._t || 0) >= 400) { unlock(); G.go(); } }
       else if (G.state === 'result' && cur === 'result' && G.lastResult) {
         e.preventDefault();
         if (G.lastResult.clear) { if (stageExistsAfter(G.lastResult.stage)) G.next(); } else G.retry();
@@ -648,6 +700,6 @@ DOMINO.UI = (function () {
     showMenu: function () { clearTimers(); hideHud(); run = null; refreshTitle(); show('title'); },
     showIntro: showIntro, showHud: showHud, showPause: showPause, showResult: showResult,
     onEvents: onEvents, update: update,
-    openStages: openStages, openSkins: openSkins, openSettings: openSettings
+    openStages: openStages, openSkins: openSkins, openSettings: openSettings, openEnding: openEnding
   };
 })();

@@ -54,7 +54,11 @@
     bar.textContent = 'LINEの中だと画面が小さめです。右下の「…」(または右上の︙)から「ブラウザで開く」を選ぶと、大きく遊べて、ホーム画面にも入れられます。';
     var x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'とじる'); x.textContent = '×';
     x.addEventListener('click', function () { try { localStorage.setItem(seenKey, '1'); } catch (e) {} if (bar.parentNode) bar.parentNode.removeChild(bar); });
-    bar.appendChild(x); addEventListener('load', function () { document.body.appendChild(bar); });
+    bar.appendChild(x);
+    addEventListener('load', function () {
+      document.body.appendChild(bar);
+      setTimeout(function () { if (bar.parentNode) bar.parentNode.removeChild(bar); }, 6000);   // 6秒で 消す(左の操作の じゃまをしない)
+    });
   })();
 
   // ホーム画面に入れられる(アプリのように開く)ための登録。file:// や 登録できない所では 何もしない
@@ -66,9 +70,9 @@
   // はじめの画面(Google Play 風: インストール / このまま遊ぶ)。install.js が出す。ホーム画面から開いたときは出ない
   window.INSTALL_GATE = {
     id: 'domino', name: 'ドミノ ラッシュ', icon: 'icon-192.png', color: '#ff7a2f',
-    tagline: 'ドミノを ならべて にげきる ランアクション',
-    desc: '走ると、うしろにドミノが並んでいく。そのドミノが うしろから「パタパタ」と倒れて追いかけてくる! つかまらないように にげきって、ゴールの大ドミノを倒そう。左がわを なぞって左右、右がわを タップでジャンプ。',
-    points: ['操作は 左で左右・右でジャンプの 2つだけ', '10のワールド・100ステージ。ワールドごとに 新しい仕掛け', 'ゴールのあとは 空からのリプレイ。自分のドミノが ぜんぶ倒れる'],
+    tagline: 'ドミノで にげきる アクション',
+    desc: '走ると、うしろに ドミノが 並んでいく。その ドミノが うしろから パタパタ 倒れて 追いかけてくる! つかまらないように にげきって、ゴールの 大ドミノを 倒そう。',
+    points: ['操作は 2つだけ。左で 左右、右で ジャンプ', '10の ワールド、100の ステージ。ワールドごとに 新しい しかけ', 'ゴールのあとは 空から リプレイ。自分の ドミノが ぜんぶ 倒れる'],
     shots: [], badges: ['無料', '広告なし', '登録なし'],
     playLabel: '▶ このまま遊ぶ',
     onPlay: function () { try { if (DOMINO.Audio && DOMINO.Audio.unlock) DOMINO.Audio.unlock(); } catch (e) {} }

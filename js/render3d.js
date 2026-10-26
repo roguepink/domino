@@ -31,6 +31,7 @@ const Q = { level: 0, frames: 0, time: 0, since: 0, warm: 0, firstDone: false, g
 const cam = { pos: new THREE.Vector3(0, 10, 10), look: new THREE.Vector3(), baseDist: 18, ready: false, fit: 1 };
 
 const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
+const WHITE = new THREE.Color(1, 1, 1);
 const tmpP = new THREE.Vector3(), tmpS = new THREE.Vector3(), tmpC = new THREE.Color(), tmpV = new THREE.Vector3();
 
 function share(o) { shared.add(o); return o; }
@@ -436,6 +437,70 @@ function makePlayer() {
   return { root, legs, body, bodyMat, face, faceMat, legL, legR, armL, armR, stars, bubble, phase: 0, yaw: 0, look: 0, squash: 0, sx: 1, sy: 1, bounce: 0, faceKind: 'run', spin: 0 };
 }
 
+// ぼうし(Save.data.hat)。頭のてっぺん = y 1.10(体の中)
+const HAT_CACHE = {};
+function buildHat(id) {
+  const g = new THREE.Group();
+  const M = (c, o) => share(new THREE.MeshPhongMaterial(Object.assign({ color: c, shininess: 40 }, o || {})));
+  const add = (geo, mat, x, y, z, rx, ry, rz) => { const m = new THREE.Mesh(share(geo), mat); m.position.set(x, y, z); m.rotation.set(rx || 0, ry || 0, rz || 0); m.castShadow = true; g.add(m); return m; };
+  const top = 1.1;
+  if (id === 'cap') {
+    const red = M(0xe8324a);
+    const dome = add(new THREE.SphereGeometry(0.24, 16, 8, 0, TAU, 0, PI / 2), red, 0, top, 0); dome.scale.set(1.1, 0.8, 0.8);
+    add(new THREE.BoxGeometry(0.36, 0.03, 0.22), red, 0, top + 0.01, -0.22);
+    add(new THREE.SphereGeometry(0.035, 8, 6), M(0xffffff), 0, top + 0.19, 0);
+  } else if (id === 'ribbon') {
+    const pk = M(0xff6fb0);
+    add(new THREE.ConeGeometry(0.1, 0.2, 10), pk, -0.11, top + 0.06, 0, 0, 0, PI / 2);
+    add(new THREE.ConeGeometry(0.1, 0.2, 10), pk, 0.11, top + 0.06, 0, 0, 0, -PI / 2);
+    add(new THREE.SphereGeometry(0.06, 10, 8), M(0xff9ccc), 0, top + 0.06, 0);
+    g.position.x = 0.12; g.rotation.z = -0.25;
+  } else if (id === 'crown') {
+    const gold = M(0xffcc33, { emissive: 0x4a3000, shininess: 100, specular: 0xffffff });
+    add(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16, 1, true), gold, 0, top + 0.05, 0);
+    for (let k = 0; k < 5; k++) { const a = k / 5 * TAU; add(new THREE.ConeGeometry(0.05, 0.13, 6), gold, Math.cos(a) * 0.19, top + 0.15, Math.sin(a) * 0.19); }
+    add(new THREE.SphereGeometry(0.04, 8, 6), M(0xff3b6b, { emissive: 0x400010 }), 0, top + 0.06, -0.2);
+  } else if (id === 'tophat') {
+    const blk = M(0x1d1a26);
+    add(new THREE.CylinderGeometry(0.3, 0.3, 0.03, 20), blk, 0, top + 0.015, 0);
+    add(new THREE.CylinderGeometry(0.18, 0.19, 0.34, 18), blk, 0, top + 0.2, 0);
+    add(new THREE.CylinderGeometry(0.192, 0.192, 0.06, 18), M(0xe8324a), 0, top + 0.07, 0);
+  } else if (id === 'chef') {
+    const w = M(0xffffff, { shininess: 10 });
+    add(new THREE.CylinderGeometry(0.17, 0.17, 0.16, 16), w, 0, top + 0.08, 0);
+    for (const [x, z] of [[0, 0], [-0.1, 0.03], [0.1, 0.03], [0, -0.08]]) add(new THREE.SphereGeometry(0.14, 12, 8), w, x, top + 0.24, z);
+  } else if (id === 'helmet') {
+    const y = M(0xffc21a, { shininess: 70 });
+    const d = add(new THREE.SphereGeometry(0.26, 16, 8, 0, TAU, 0, PI / 2), y, 0, top - 0.02, 0); d.scale.set(1.12, 0.85, 0.75);
+    add(new THREE.CylinderGeometry(0.34, 0.34, 0.025, 20), y, 0, top - 0.01, 0).scale.set(1, 1, 0.7);
+    add(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 10), M(0xffffff, { emissive: 0xfff2a8 }), 0, top + 0.12, -0.2, PI / 2 - 0.4);
+  } else if (id === 'flower') {
+    add(new THREE.SphereGeometry(0.06, 10, 8), M(0xffd23f), 0, top + 0.08, 0);
+    for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; add(new THREE.SphereGeometry(0.06, 10, 8), M(0xff8ac6), Math.cos(a) * 0.1, top + 0.08 + Math.sin(a) * 0.1, 0); }
+    add(new THREE.CylinderGeometry(0.012, 0.012, 0.1, 5), M(0x4fae3e), 0, top + 0.02, 0);
+    g.position.x = -0.14; g.rotation.z = 0.3;
+  } else if (id === 'oni') {
+    const horn = M(0xffe6a8, { shininess: 60 });
+    add(new THREE.ConeGeometry(0.06, 0.2, 10), horn, -0.14, top + 0.09, 0, 0, 0, 0.25);
+    add(new THREE.ConeGeometry(0.06, 0.2, 10), horn, 0.14, top + 0.09, 0, 0, 0, -0.25);
+  } else if (id === 'halo') {
+    const h = add(new THREE.TorusGeometry(0.2, 0.035, 8, 24), share(new THREE.MeshBasicMaterial({ color: 0xfff2a0 })), 0, top + 0.22, 0, PI / 2);
+    h.castShadow = false; g.userData.halo = h;
+  }
+  return g;
+}
+function applyHat() {
+  const P = R.player; if (!P) return;
+  let id = 'none';
+  try { id = (DOM.Save && DOM.Save.data.hat) || 'none'; } catch (e) {}
+  if (P.hatId === id) return;
+  if (P.hat) P.body.remove(P.hat);
+  P.hat = null; P.hatId = id;
+  if (id === 'none') return;
+  P.hat = HAT_CACHE[id] || (HAT_CACHE[id] = buildHat(id));
+  P.body.add(P.hat);
+}
+
 // ---------------------------------------------------------------- init
 function supported() {
   try {
@@ -484,6 +549,11 @@ function init(b) {
     sp.scale.set(0.8, 0.8, 1); sp.visible = false; sp.userData.t = 0; scene.add(sp); R.notes.push(sp);
   }
   R.noteI = 0;
+  R.fronts = [];
+  for (let i = 0; i < 2; i++) {
+    const sp = new THREE.Sprite(share(new THREE.SpriteMaterial({ map: R.dotTex, color: 0xffd27a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })));
+    sp.visible = false; sp.renderOrder = 6; scene.add(sp); R.fronts.push(sp);
+  }
   // 切れた所の印
   R.mark = new THREE.Mesh(share(new THREE.TorusGeometry(0.5, 0.07, 8, 28)), share(new THREE.MeshBasicMaterial({ color: 0xff3048 })));
   R.mark.rotation.x = -PI / 2; R.mark.visible = false; scene.add(R.mark);
@@ -697,7 +767,7 @@ function buildStage() {
   const giant = new THREE.Mesh(domGeometry(gW, gH, gT), makeDomMat('gloss', '#ffffff', world.accent || '#ff3d7f', 0.06));
   giant.castShadow = true; giant.receiveShadow = true; grp.add(giant); S.giant = giant;
   giant.position.z = -(gz + gT / 2);
-  S.finale = buildFinale(world.finale || 'tower', gz);
+  S.finale = buildFinale(world.finale || 'tower', gz, !(stageObj && stageObj.id % 10 === 0));
   grp.add(S.finale.grp);
   // コースの横のはしの柵(sim 側では かべ。L.rail のとき)。はしのマスが床の行だけ、低い柵を置く
   if (L.rail) {
@@ -993,11 +1063,11 @@ function applyWorldLook() {
 }
 
 // ---------------------------------------------------------------- ゴールの大仕掛け
-function buildFinale(kind, gz) {
+function buildFinale(kind, gz, small) {
   const grp = new THREE.Group();
   const FZ = gz + 2.8;                   // 大仕掛けの手前のふち(sim の z)
   grp.position.set(0, 0, -FZ);
-  const F = { grp, kind, pieces: [], hideOnHit: [], showOnHit: [], spin: [], hit: false, t: 0, smokeT: 0, beam: null, FZ };
+  const F = { grp, kind, small: !!small, pieces: [], hideOnHit: [], showOnHit: [], spin: [], hit: false, t: 0, smokeT: 0, beam: null, FZ };
   const mats = new Map();
   const M = (hex, opt) => { const k = hex + JSON.stringify(opt || {}); if (!mats.has(k)) mats.set(k, new THREE.MeshPhongMaterial(Object.assign({ color: hex, shininess: 35 }, opt || {}))); return mats.get(k); };
   const mesh = (geo, mat, x, y, zf, o = {}) => {
@@ -1020,7 +1090,47 @@ function buildFinale(kind, gz) {
   const cyl = (r1, r2, h, n = 16) => new THREE.CylinderGeometry(r1, r2, h, n);
   const sph = (r, n = 16) => new THREE.SphereGeometry(r, n, Math.max(8, n * 0.6 | 0));
 
-  if (kind === 'tower') {
+  if (small) {
+    // ふつうの面: 大ドミノ + ワールドらしい 小さな物(10面目の 大仕掛けは とっておく)
+    const W = world || {};
+    const cols = [W.accent || '#ff5a8a', W.wall || '#c98b5a', '#ffffff', RB[(stageObj ? stageObj.id : 0) % 6]];
+    const bk = box(0.6, 0.6, 0.6);
+    let n = 0;
+    for (let l = 0; l < 3; l++) for (let k = 0; k <= 2 - l; k++) mesh(bk, cols[(n++) % cols.length], (k - (2 - l) / 2) * 0.64 - 0.95, 0.3 + l * 0.6, 0.9, { r: 0.3 });
+    const sx = 0.95, zf = 1.2;
+    if (kind === 'tower') { for (let l = 0; l < 4; l++) mesh(box(0.9, 0.4, 0.5), RB[l], sx, 0.2 + l * 0.4, zf, { ry: l * 0.4, r: 0.2 }); }
+    else if (kind === 'train') {
+      const g = group(sx, 0, zf, { r: 0.35 });
+      mesh(box(1.1, 0.5, 0.6), '#e8324a', 0, 0.45, 0, { parent: g }); mesh(cyl(0.22, 0.22, 0.6, 12), '#e8324a', -0.15, 0.85, 0, { parent: g, rz: PI / 2 });
+      mesh(cyl(0.08, 0.1, 0.3, 8), '#222', -0.35, 1.05, 0, { parent: g });
+      for (const wx of [-0.35, 0.35]) for (const wz of [-0.3, 0.3]) mesh(cyl(0.16, 0.16, 0.08, 12), '#1e1c26', wx, 0.16, wz, { parent: g, rx: PI / 2 });
+    } else if (kind === 'machine') {
+      const gg = mesh(new THREE.ExtrudeGeometry(toothShape(0.55, 0.45, 8), { depth: 0.16, bevelEnabled: false }), '#ffb400', sx, 0.6, zf, { r: 0.4 }); F.spin.push([gg, 'z', 1.6]);
+      mesh(box(0.5, 0.5, 0.5), '#9aa4b2', sx + 0.7, 0.25, zf - 0.2, { r: 0.25 });
+    } else if (kind === 'balloon') {
+      for (let k = 0; k < 3; k++) { const b = group(sx + (k - 1) * 0.55, 0, zf + (k % 2) * 0.3, { mode: 'rise', r: 0.3 }); mesh(sph(0.3, 12), RB[k * 2], 0, 1.7 + k * 0.15, 0, { parent: b }); mesh(cyl(0.01, 0.01, 1.3, 4), '#ffffff', 0, 0.75 + k * 0.15, 0, { parent: b }); mesh(box(0.2, 0.15, 0.2), '#a8743c', 0, 0.1, 0, { parent: b }); }
+    } else if (kind === 'tree') {
+      const tr = group(sx, 0, zf, { mode: 'topple' });
+      mesh(cyl(0.12, 0.16, 1.0, 8), '#7a4f2a', 0, 0.5, 0, { parent: tr }); mesh(sph(0.6, 12), '#3fa84a', 0, 1.35, 0, { parent: tr });
+      mesh(sph(0.1, 8), '#ff3b3b', sx + 0.4, 1.2, zf - 0.4, { r: 0.1 });
+    } else if (kind === 'snowman') {
+      const w = M('#ffffff', { shininess: 10 });
+      mesh(sph(0.45, 14), w, sx, 0.45, zf, { r: 0.45 }); mesh(sph(0.32, 12), w, sx, 1.1, zf, { r: 0.32 });
+      mesh(cyl(0.16, 0.16, 0.26, 10), '#222', sx, 1.5, zf, { r: 0.13 }); mesh(new THREE.ConeGeometry(0.05, 0.22, 6), '#ff7a1a', sx, 1.1, zf - 0.38, { rx: -PI / 2, r: 0.05 });
+    } else if (kind === 'fireworks') {
+      for (let k = 0; k < 2; k++) { mesh(cyl(0.14, 0.16, 0.7, 10), RB[k + 1], sx + k * 0.5, 0.35, zf, { r: 0.15 }); const rk = mesh(new THREE.ConeGeometry(0.12, 0.35, 8), RB[k + 3], sx + k * 0.5, 0.85, zf, { mode: 'rocket', r: 0.15, delay: 0.1 + k * 0.25 }); rk.userData.col = RB[k * 3]; }
+    } else if (kind === 'lighthouse') {
+      for (let k = 0; k < 3; k++) mesh(cyl(0.3 - k * 0.04, 0.34 - k * 0.04, 0.45, 12), k % 2 ? '#ffffff' : '#e8324a', sx, 0.225 + k * 0.45, zf, { r: 0.22 });
+      mesh(sph(0.16, 10), new THREE.MeshBasicMaterial({ color: 0xfff2a8 }), sx, 1.5, zf, { r: 0.16 });
+    } else if (kind === 'statue') {
+      const st = M('#8a8270', { shininess: 5 });
+      mesh(box(0.7, 0.5, 0.6), st, sx, 0.25, zf, { r: 0.25 }); mesh(box(0.55, 0.7, 0.5), st, sx, 0.85, zf, { r: 0.35 });
+      for (const ex of [-0.12, 0.12]) mesh(box(0.1, 0.06, 0.03), new THREE.MeshBasicMaterial({ color: 0x7cf3ff }), sx + ex, 0.95, zf - 0.26, { r: 0.03 });
+    } else {
+      mesh(cyl(0.35, 0.38, 1.4, 12), '#e8e0f0', sx, 0.7, zf, { r: 0.35 }); mesh(new THREE.ConeGeometry(0.48, 0.7, 12), '#7a4fb3', sx, 1.75, zf, { r: 0.3 });
+      mesh(new THREE.PlaneGeometry(0.3, 0.18), M('#ffd700', { side: THREE.DoubleSide }), sx + 0.15, 2.25, zf, { r: 0.05 });
+    }
+  } else if (kind === 'tower') {
     const g = box(2.4, 0.6, 0.76), g2 = box(0.76, 0.6, 2.4);
     for (let l = 0; l < 9; l++) for (let k = 0; k < 3; k++) {
       const c = RB[(l * 3 + k) % 6];
@@ -1318,9 +1428,9 @@ function updateDominoes(t, zMin, zMax, tv) {
     const dm = d[i];
     if (dm.z < zMin || dm.z > zMax) continue;
     const hs = dm.tall ? dm.tall / H : 1;
-    let a = 0;
-    if (replay) { if (dm.st && dm.t0 <= tv) { const u = Math.min(1, (tv - dm.t0) / (rFall * Math.sqrt(hs))); a = dm.rest * u * u; } }
-    else if (dm.st > 0) { const u = Math.min(1, (t - dm.t0) / (CFG.FALL_TIME * Math.sqrt(hs))); a = dm.rest * u * u; }
+    let a = 0, fu = -1;                               // fu: 倒れぐあい(-1 = 立っている)
+    if (replay) { if (dm.st && dm.t0 <= tv) { fu = (tv - dm.t0) / (rFall * Math.sqrt(hs)); const u = Math.min(1, fu); a = dm.rest * u * u; } }
+    else if (dm.st > 0) { fu = (t - dm.t0) / (CFG.FALL_TIME * Math.sqrt(hs)); const u = Math.min(1, fu); a = dm.rest * u * u; }
     let pop = 1, drop = 0;
     if (!replay && i < S.born.length) { const bu = (t - S.born[i]) / 0.14; if (bu < 1 && bu >= 0) { pop = 0.55 + 0.45 * bu; drop = (1 - bu) * 0.35; } }
     const sh = Math.sin(dm.h), ch = Math.cos(dm.h);
@@ -1328,6 +1438,8 @@ function updateDominoes(t, zMin, zMax, tv) {
     tmpE.set(-a, -dm.h, 0); tmpQ.setFromEuler(tmpE);
     tmpS.set(pop, hs * pop, pop);
     domColor(dm.n, tmpC);
+    // 倒れたドミノは 色をしずめる(立っている列と 見分けやすく)。倒れている最中は 少し明るく光る
+    if (fu >= 0) { if (fu < 1.6) tmpC.lerp(WHITE, 0.35 * (1 - fu / 1.6)); else tmpC.multiplyScalar(Math.max(0.5, 1 - (fu - 1.6) * 0.25)); }
     const n = dm.twin ? 2 : 1;
     for (let q = 0; q < n; q++) {
       const off = n === 2 ? (q ? 0.3 : -0.3) : 0;
@@ -1453,11 +1565,12 @@ function updateGiantFinale(t, dt) {
 }
 function finaleImpact() {
   S.finale.trigger();
-  hitstop(0.06); shake(0.35, 0.35);
+  const sm = S.finale.small;
+  hitstop(sm ? 0.05 : 0.06); shake(sm ? 0.22 : 0.35, sm ? 0.25 : 0.35);
   const F = S.finale, z = F.FZ;
   R.dust.burst(0, 0.3, z - 0.3, 30, 5, 1.2, 0.9, dustCol(), 0.5, 1);
   R.glow.burst(0, 1.5, z + 1, 50, 6, 1.0, 0.45, srgb('#fff2a8'), 3, 3);
-  for (let k = 0; k < 90; k++) R.confetti.spawn(rnd(-4, 4), rnd(2, 5), z + rnd(-1, 4), rnd(-4, 4), rnd(3, 8), rnd(-2, 4), 1, 1, 1, confCol(), rnd(2.5, 4.5));
+  for (let k = 0; k < (sm ? 40 : 90); k++) R.confetti.spawn(rnd(-4, 4), rnd(2, 5), z + rnd(-1, 4), rnd(-4, 4), rnd(3, 8), rnd(-2, 4), 1, 1, 1, confCol(), rnd(2.5, 4.5));
 }
 
 // ---------------------------------------------------------------- 主人公
@@ -1517,6 +1630,7 @@ function updatePlayer(dt, realDt, t) {
     else if (why === 'fall') { P.spin += dt * 6; P.body.rotation.x = P.spin; P.armL.rotation.z = -2.6; P.armR.rotation.z = 2.6; }
   } else { P.spin = 0; P.body.rotation.x = lean; }
   P.body.position.y = bob;
+  if (P.hat && P.hat.userData.halo) P.hat.userData.halo.position.y = 1.32 + Math.sin(realClock * 3) * 0.03;
   P.root.scale.set(sx * 1.22, Math.max(0.2, sy) * 1.22, sx * 1.22);
   // 顔
   let fk = 'run';
@@ -1546,18 +1660,26 @@ function updatePlayer(dt, realDt, t) {
 function updateFX(dt, t) {
   if (!dt) return;
   const d = sim.doms, H = CFG.DOM_H;
+  if (RP) for (const sp of R.fronts) sp.visible = false;
   if (!RP) {
+    let gi = 0;
     for (const fr of sim.fronts) {
       if (fr.dead || fr.i <= 0) continue;
       const dm = d[Math.min(d.length - 1, fr.i - 1)];
       if (!dm || !dm.st || t - dm.t0 > 0.6) continue;
       const fx = Math.sin(dm.h), fz = Math.cos(dm.h);
       const v = sim.wave.v || 4;
-      S.frontAcc += dt * v * 3.2;
-      while (S.frontAcc > 1) { S.frontAcc -= 1; R.dust.emit(dm.x + fx * H * 0.9 + rnd(-0.3, 0.3), 0.05, dm.z + fz * H * 0.9 + rnd(-0.2, 0.2), rnd(-1, 1), rnd(0.4, 1.2), fz * rnd(0, 1), rnd(0.5, 0.8), rnd(0.35, 0.55), dustCol(), 0.6, 1.5, 1.3, 0.7); }
-      S.sparkAcc += dt * v * 2.4;
-      while (S.sparkAcc > 1) { S.sparkAcc -= 1; R.glow.emit(dm.x + fx * 0.6 + rnd(-0.3, 0.3), rnd(0.2, 0.8), dm.z + fz * 0.6, rnd(-1.5, 1.5), rnd(1, 3), fz * rnd(0.5, 2), rnd(0.3, 0.55), rnd(0.18, 0.3), [1, 0.92, 0.6], 3, 1); }
+      // 先頭の光(大きな やわらかい光が 先頭について行く)
+      if (gi < R.fronts.length) {
+        const sp = R.fronts[gi++], k = 1 + 0.12 * Math.sin(realClock * 18);
+        sp.visible = true; sp.position.set(dm.x + fx * 0.5, 0.55, -(dm.z + fz * 0.5)); sp.scale.set(2.6 * k, 2.6 * k, 1);
+      }
+      S.frontAcc += dt * v * 4.5;
+      while (S.frontAcc > 1) { S.frontAcc -= 1; R.dust.emit(dm.x + fx * H * 0.9 + rnd(-0.35, 0.35), 0.05, dm.z + fz * H * 0.9 + rnd(-0.25, 0.25), rnd(-1.4, 1.4), rnd(0.6, 1.6), fz * rnd(0, 1.2), rnd(0.55, 0.9), rnd(0.55, 0.85), dustCol(), 0.6, 1.5, 1.6, 0.8); }
+      S.sparkAcc += dt * v * 3.6;
+      while (S.sparkAcc > 1) { S.sparkAcc -= 1; R.glow.emit(dm.x + fx * 0.6 + rnd(-0.3, 0.3), rnd(0.2, 1.0), dm.z + fz * 0.6, rnd(-1.8, 1.8), rnd(1.5, 3.5), fz * rnd(0.5, 2.5), rnd(0.35, 0.6), rnd(0.22, 0.38), [1, 0.9, 0.55], 3, 1); }
     }
+    for (; gi < R.fronts.length; gi++) R.fronts[gi].visible = false;
     // 前から倒れてくる列の先頭
     for (const e of S.objs) {
       if (!e || e.o.t !== 'rival' || e.o.t0 < 0) continue;
@@ -1665,7 +1787,7 @@ function updateCamera(rdt) {
     if (RP.phase === 1) {
       look.set(RP.fx * 0.4, 0, -(RP.fz + 5));
       pos.set(RP.fx * 0.4 + 3, 25, -(RP.fz - 9));
-      kPos = 3; kLook = 4;
+      kPos = 4.5; kLook = 6;
     } else goalCam(look, pos, D);
   } else if (st === 'goal' || st === 'clear') {
     goalCam(look, pos, D); kPos = 2.2; kLook = 2.6;
@@ -1738,7 +1860,7 @@ function replay(onDone) {
   for (const dm of d) if (dm.st) { if (dm.t0 < t0) t0 = dm.t0; if (dm.t0 > t1) t1 = dm.t0; }
   if (!isFinite(t0)) { setTimeout(done, 0); return; }
   const span = Math.max(0.5, t1 - t0);
-  const dur = clamp(span / 7, 2.6, 3.4);
+  const dur = clamp(span / 9, 1.6, 1.9);
   const speed = span / dur;
   RP = { done, t: 0, t0, t1, dur, speed, fall: Math.max(CFG.FALL_TIME, speed * 0.17), phase: 1, k: 0, fx: d[0].x, fz: d[0].z, ga: 0, gt: 0, fdt: 0, called: false };
   S.finale.reset();
@@ -1756,17 +1878,17 @@ function stepReplay(rdt) {
     // 先頭に 光の粒
     const fx = Math.sin(dm.h), fz = Math.cos(dm.h);
     for (let q = 0; q < 2; q++) R.glow.emit(dm.x + fx * 0.8 + rnd(-0.4, 0.4), 0.4, dm.z + fz * 0.8, rnd(-1, 1), rnd(1, 3), rnd(-1, 1), 0.5, 0.45, [1, 0.9, 0.6], 2, 1);
-    if (P.t >= P.dur + 0.25) { P.phase = 2; P.t2 = 0; }
+    if (P.t >= P.dur + 0.1) { P.phase = 2; P.t2 = 0; }
     return tv;
   }
   // 2: 大ドミノと 大仕掛けを 少しゆっくり
   P.t2 += rdt;
   P.fz = (sim.giant || S.giantDef).z;
-  const gt = Math.max(0, P.t2 - 0.5);
-  const u = Math.min(1, gt / 1.25); P.ga = u * u * PI / 2;
-  P.fdt = S.finale.hit ? rdt * 0.6 : 0;
+  const gt = Math.max(0, P.t2 - 0.15);
+  const u = Math.min(1, gt / 0.7); P.ga = u * u * PI / 2;
+  P.fdt = S.finale.hit ? rdt * 0.85 : 0;
   if (P.ga > 1.18 && !S.finale.hit) { S.finale.trigger(); shake(0.3, 0.3); R.glow.burst(0, 1.5, S.finale.FZ + 1, 40, 6, 1, 0.45, srgb('#fff2a8'), 3, 3); for (let k = 0; k < 70; k++) R.confetti.spawn(rnd(-4, 4), rnd(2, 5), S.finale.FZ + rnd(-1, 4), rnd(-4, 4), rnd(3, 8), rnd(-2, 4), 1, 1, 1, confCol(), rnd(2.5, 4)); }
-  if (P.t2 > 0.5 + 1.25 + 1.4) {
+  if (P.t2 > 0.15 + 0.7 + 0.6) {
     RP = null;
     if (!P.called) { P.called = true; try { P.done(); } catch (e) { console.error(e); } }
     return null;
