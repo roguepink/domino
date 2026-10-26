@@ -23,18 +23,52 @@ DOMINO.SKINS = [
   { id: 'sumi', name: 'すみ', cost: 250, colors: ['#1b1b1f', '#26262c', '#303038'], pip: '#ffffff', look: 'gloss' }
 ];
 
+// ---- ドミくんの ぼうし(コインで買う)。id は 3D係と決めた 10個 ----
+DOMINO.HATS = [
+  { id: 'none', name: 'なし', cost: 0, ic: '' },
+  { id: 'cap', name: 'キャップ', cost: 30, ic: '🧢' },
+  { id: 'ribbon', name: 'リボン', cost: 50, ic: '🎀' },
+  { id: 'flower', name: 'お花', cost: 70, ic: '🌼' },
+  { id: 'chef', name: 'コック', cost: 90, ic: '' },
+  { id: 'helmet', name: 'ヘルメット', cost: 120, ic: '⛑️' },
+  { id: 'tophat', name: 'シルクハット', cost: 150, ic: '🎩' },
+  { id: 'oni', name: 'おにの つの', cost: 180, ic: '' },
+  { id: 'crown', name: '王かん', cost: 240, ic: '👑' },
+  { id: 'halo', name: '天使の わ', cost: 300, ic: '' }
+];
+// save.js は 知らない項目を 読みこみで すてるので、ぼうしは べつの所にも 覚える(まとめ役が save.js に足したら そちらでも読める)
+(function () {
+  var d = DOMINO.Save && DOMINO.Save.data; if (!d) return;
+  var o = null;
+  try { o = JSON.parse(localStorage.getItem('domino-hats-v1') || 'null'); } catch (e) {}
+  var hats = (d.hats && typeof d.hats === 'object') ? d.hats : {};
+  if (o && o.hats && typeof o.hats === 'object') for (var k in o.hats) if (o.hats[k]) hats[k] = true;
+  hats.none = true;
+  d.hats = hats;
+  var hat = typeof d.hat === 'string' ? d.hat : (o && typeof o.hat === 'string' ? o.hat : 'none');
+  d.hat = hats[hat] ? hat : 'none';
+})();
+
 DOMINO.UI = (function () {
   var G = null, root = null, S = {}, cur = '';
   var R = {};                 // プレイ中の部品
   var run = null;             // プレイ中の 小さな状態(コンボの区切り など)
   var resultTimer = [];
 
-  var REASON = {
-    caught: { t: '波に つかまった!', h: 'ジグザグに走ると 列が長くなって、波が おくれるよ' },
-    broken: { t: '列が とぎれた!', h: 'ドミノの間が はなれすぎると、波が とどかないよ' },
-    empty: { t: 'ドミノが なくなった!', h: '箱や「+」の門で ドミノを ふやそう' },
-    fall: { t: '落ちちゃった!', h: '穴は 右がわを タップして ジャンプ!' }
+  var REASON = { caught: '波に つかまった!', broken: '列が とぎれた!', empty: 'ドミノが なくなった!', fall: '落ちちゃった!' };
+  // 負けのコツ(res.reason と sim.failHint で えらぶ)
+  var HINTS = {
+    'caught.wall': 'かべで 止まると 波に 追いつかれる。早めに よこへ よけよう',
+    'caught.hit': 'じゃま物に 当たると しびれて 止まる。よく見て よけよう',
+    'caught.mud': 'ぬかるみでは おそくなる。波が 近いときは さけよう',
+    'caught': 'ジグザグに 走ると 列が 長くなって、波が おくれるよ',
+    'empty.far': '遠回りしすぎると ドミノが 足りなくなる。まっすぐ 走るのも 大事',
+    'broken.far': '遠回りしすぎると ドミノが 足りなくなる。まっすぐ 走るのも 大事',
+    'empty': '箱や「+」の門で ドミノを ふやそう',
+    'broken': 'ドミノの間が はなれすぎると、波が とどかないよ',
+    'fall': '穴は 右がわを タップして ジャンプ!'
   };
+  function hintFor(reason, hint) { return HINTS[reason + '.' + hint] || HINTS[reason] || ''; }
   var REVIVE = { caught: '波を 少し 止める', broken: 'ドミノ +15本で つなぎ直す', empty: 'ドミノ +15本で つなぎ直す', fall: '近くの床に もどる' };
 
   // ---------- 小さな道具 ----------
@@ -57,7 +91,24 @@ DOMINO.UI = (function () {
   function playTarget() {
     var u = DOMINO.Save.unlocked();
     if (stageById(u)) return u;
+    // とばした面が のこっていれば そこから
+    var a = stages();
+    for (var i = 0; i < a.length; i++) if (!(sv().stars[a[i].id] > 0)) return a[i].id;
     return 0;
+  }
+  // 全部の面を クリアした?
+  function allCleared() {
+    var a = stages(); if (!a.length) return false;
+    for (var i = 0; i < a.length; i++) if (!(sv().stars[a[i].id] > 0)) return false;
+    return true;
+  }
+  function coinHTML(n) { return '<span class="coin"><i class="ico cn"></i>' + fmt(n) + '</span>'; }
+  function saveHats() {
+    DOMINO.Save.write();
+    try { localStorage.setItem('domino-hats-v1', JSON.stringify({ hat: sv().hat, hats: sv().hats })); } catch (e) {}
+  }
+  function hatPreview(hat) {
+    return '<span class="hatpv">' + domikun('') + '<span class="hat h-' + hat.id + '">' + (hat.ic || '') + '</span></span>';
   }
 
   // ---------- 画面の切りかえ ----------
@@ -69,6 +120,7 @@ DOMINO.UI = (function () {
 
   // ドミノの形のタイル(文字入り)
   function tileHTML(ch, color, cls) {
+    if (String(ch).length >= 4) cls = (cls || '') + ' long';
     return '<span class="tile ' + (cls || '') + '" style="--c:' + color + '"><i class="pip pt"></i><span class="ch">' + ch + '</span><i class="pip pb"></i></span>';
   }
   var RAINBOW = ['#ff5a6a', '#ff9a3c', '#ffd23f', '#5fd068', '#3fb7ff', '#7a6cff', '#ff6ad5'];
@@ -95,27 +147,29 @@ DOMINO.UI = (function () {
         '<span class="chip stock"><i class="ico dom"></i><b class="v">0</b></span>' +
         '<span class="chip gold"><i class="ico gdom"></i><b class="v">0/3</b></span>' +
         '<span class="chip near"><i class="ico nr">ギリ</i><b class="v">0/3</b></span>' +
-        '<span class="score"><b class="v">0</b></span>' +
-      '</div>';
+        '<span class="score"><i class="mul"></i><b class="v">0</b></span>' +
+      '</div>' +
+      '<div class="warn">あぶない!</div>';
     root.appendChild(hud); R.hud = hud;
     R.fill = hud.querySelector('.fill'); R.waveFill = hud.querySelector('.wavefill');
     R.mkWave = hud.querySelector('.mk.wave'); R.mkHero = hud.querySelector('.mk.hero'); R.prog = hud.querySelector('.prog');
     R.stock = hud.querySelector('.chip.stock'); R.stockV = R.stock.querySelector('.v');
     R.gold = hud.querySelector('.chip.gold'); R.goldV = R.gold.querySelector('.v');
     R.near = hud.querySelector('.chip.near'); R.nearV = R.near.querySelector('.v');
-    R.scoreV = hud.querySelector('.score .v');
+    R.scoreV = hud.querySelector('.score .v'); R.mul = hud.querySelector('.score .mul'); R.warn = hud.querySelector('.warn');
     R.pop = h('div', 'pop', ''); R.pop.id = 'pop'; root.appendChild(R.pop);
     R.combo = h('div', 'combo', ''); R.combo.id = 'combo'; root.appendChild(R.combo);
     R.plus = h('div', '', ''); R.plus.id = 'plus'; root.appendChild(R.plus);
     R.tip = h('div', '', ''); R.tip.id = 'tip';
     R.tip.innerHTML =
       '<div class="half l"><div class="finger swipe">👆</div><span class="ar al">◀</span><span class="ar arr">▶</span><p>左を なぞって<br>左右に うごく</p></div>' +
-      '<div class="half r"><div class="finger tap">👆</div><div class="ripple"></div><p>右を タップで<br>ジャンプ</p></div>';
+      '<div class="half r"><div class="finger tap">👆</div><div class="ripple"></div><p>右を タップで<br>ジャンプ</p></div>' +
+      '<div class="avoid">🪨 岩・かべは よけよう</div>';
     root.appendChild(R.tip);
 
     // それぞれの画面
     S.title = scr('title'); S.stages = scr('stages'); S.intro = scr('intro'); S.pause = scr('pause');
-    S.replay = scr('replay'); S.result = scr('result'); S.skins = scr('skins'); S.settings = scr('settings'); S.hud = scr('hudscr');
+    S.replay = scr('replay'); S.result = scr('result'); S.skins = scr('skins'); S.settings = scr('settings'); S.hud = scr('hudscr'); S.ending = scr('ending');
     R.toast = h('div', '', ''); R.toast.id = 'toast'; root.appendChild(R.toast);
 
     buildTitle();
@@ -146,8 +200,8 @@ DOMINO.UI = (function () {
   }
   function refreshTitle() {
     var t = playTarget(), sub = $('tPlaySub');
-    sub.textContent = t ? ('ステージ ' + label(t) + (t === 1 && !sv().stars[1] ? ' から' : ' から つづき')) : 'つぎの面は じゅんび中';
-    $('tStars').innerHTML = '<span class="st">★</span> ' + DOMINO.Save.totalStars();
+    sub.textContent = t ? ('ステージ ' + label(t) + (t === 1 && !sv().stars[1] ? ' から' : ' から つづき')) : (allCleared() ? 'ぜんぶ クリア! 🎉' : 'つぎの面は じゅんび中');
+    $('tStars').innerHTML = '<span class="st">★</span> ' + DOMINO.Save.totalStars() + '<span class="sep"></span>' + coinHTML(sv().coins || 0);
   }
 
   // ---------- ステージ選び ----------
@@ -206,6 +260,7 @@ DOMINO.UI = (function () {
     var WD = DOMINO.worldOf(st), best = sv().best[st.id] || 0, got = sv().stars[st.id] || 0;
     var gold = sim ? sim.starsTotal : 3, near = sim ? sim.cfg.nearGoal : 3;
     S.intro.style.setProperty('--ac', WD.accent);
+    S.intro._t = Date.now();
     S.intro.innerHTML =
       '<button class="btn back small" data-act="stagesFromIntro">◀ ステージ選び</button>' +
       '<div class="icard">' +
@@ -216,7 +271,7 @@ DOMINO.UI = (function () {
         '<ul class="conds">' +
           '<li><span class="st">★</span> ゴールまで にげきる</li>' +
           (gold > 0 ? '<li><span class="st">★</span> 金のドミノを ' + gold + 'つ とる</li>' : '<li class="off"><span class="st">★</span> (金のドミノは ない面)</li>') +
-          '<li><span class="st">★</span> ギリギリ を ' + near + '回</li>' +
+          '<li><span class="st">★</span> 波に 近づいて にげきる(セーフ!)を ' + near + '回</li>' +
         '</ul>' +
         (st.tip ? '<div class="itip"><span class="new">NEW</span>' + esc(st.tip) + '</div>' : '') +
       '</div>' +
@@ -226,35 +281,45 @@ DOMINO.UI = (function () {
   function startFromIntro(e) {
     if (!G || G.state !== 'intro') return;
     if (e && e.target && e.target.closest && e.target.closest('[data-act]')) return;
+    if (Date.now() - (S.intro._t || 0) < 400) return;   // 2回タップで とばされないように
     unlock();
     G.go();
   }
 
   // ---------- プレイ中 ----------
-  function hideHud() { R.hud.classList.remove('on'); R.edge.style.opacity = 0; R.tip.className = ''; }
+  function hideHud() { R.hud.classList.remove('on'); R.edge.style.opacity = 0; R.tip.className = ''; if (R.warn) R.warn.classList.remove('on'); popQ = []; }
   function showHud(sim) {
     clearTimers();
     show('hud');
     R.hud.classList.add('on');
     if (!run || run.sim !== sim) {
-      run = { sim: sim, combo: 0, milestone: 0, score: 0, tipT: -1, lastStock: sim.stock };
-      R.pop.className = 'pop'; R.combo.className = 'combo';
+      run = { sim: sim, combo: 0, milestone: 0, score: 0, tipT: -1, lastStock: sim.stock, mul: 1 };
+      R.pop.className = 'pop'; R.combo.className = 'combo'; popQ = []; popT = 0;
       var st = sim.stage;
       if (st && st.id === 1 && !(sv().seenTips || {})[1]) run.tipT = 0;
     }
     R.tip.className = run.tipT >= 0 ? 'on' : '';
   }
-  function pop(text, kind) {
-    R.pop.textContent = text;
-    R.pop.className = 'pop ' + (kind || '');
+  // 文字の看板は 1つずつ 順番に出す(重ならない)。大事なもの(urgent)は 先に
+  var popQ = [], popT = 0, POP_SEC = 0.75;
+  function pop(text, kind, sub, urgent) {
+    var it = { t: text, k: kind, s: sub };
+    if (urgent) popQ.unshift(it); else popQ.push(it);
+    if (popQ.length > 3) popQ.length = 3;
+  }
+  function popNext() {
+    var it = popQ.shift();
+    R.pop.innerHTML = esc(it.t) + (it.s ? '<small>' + esc(it.s) + '</small>' : '');
+    R.pop.className = 'pop ' + (it.k || '');
     restart(R.pop, 'go');
+    popT = POP_SEC;
   }
   function plus(text, kind) {
     var e = h('span', 'pl ' + (kind || ''), esc(text));
     R.plus.appendChild(e);
     setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 900);
   }
-  var MILES = [50, 100, 200, 300, 500, 750, 1000, 1500, 2000];
+  var MILES = [100, 250, 500, 1000, 2000, 3000];
   function onEvents(list, sim) {
     if (!run || G.state !== 'play') return;
     for (var i = 0; i < list.length; i++) {
@@ -267,11 +332,18 @@ DOMINO.UI = (function () {
           if (m > run.milestone) {
             run.milestone = m;
             R.combo.innerHTML = '<b>' + m + '</b><span>コンボ!</span>';
-            R.combo.className = 'combo' + (m >= 500 ? ' mega' : m >= 200 ? ' big' : '');
+            R.combo.className = 'combo' + (m >= 1000 ? ' mega' : m >= 500 ? ' big' : '');
             restart(R.combo, 'go');
           }
           break;
-        case 'near': pop('ギリギリ!', 'near'); break;
+        case 'near': break;   // 「あぶない!」は update で 小さく出す
+        case 'escape':
+          var ng = sim.cfg.nearGoal;
+          pop('セーフ!', 'safe', 'ギリギリ ' + Math.min(e.n, ng) + '/' + ng, true);
+          restart(R.near, 'bump');
+          try { if (G.slowmo) G.slowmo(0.4, 0.3); } catch (er) {}
+          break;
+        case 'beatghost': pop('前の自分を ぬいた!', 'info'); break;
         case 'opgate':
           var t = e.op === '+' ? '+' + e.n : e.op === 'x' ? '×' + e.n : '−' + e.n;
           pop(t, e.op === '-' ? 'bad' : 'good'); break;
@@ -285,7 +357,7 @@ DOMINO.UI = (function () {
           break;
         case 'low': pop('ドミノが のこり わずか!', 'bad'); break;
         case 'empty': pop('ドミノ切れ!', 'bad'); break;
-        case 'goal': pop('ゴール!', 'gold'); break;
+        case 'goal': popQ = []; pop('ゴール!', 'gold', '', true); break;
         case 'revive': pop('お助け!', 'info'); break;
       }
     }
@@ -324,6 +396,12 @@ DOMINO.UI = (function () {
     run.score += (sim.score - run.score) * Math.min(1, dt * 10);
     if (Math.abs(sim.score - run.score) < 1) run.score = sim.score;
     R.scoreV.textContent = fmt(run.score);
+    var mul = sim.state === 'run' && sim.nearMul > 1 ? sim.nearMul : 1;
+    if (mul !== run.mul) { run.mul = mul; R.mul.textContent = mul > 1 ? '×' + mul : ''; R.mul.className = 'mul' + (mul > 1 ? ' on m' + mul : ''); }
+    R.warn.classList.toggle('on', !!(sim.inNear && sim.state === 'run'));
+    // 文字の看板
+    if (popT > 0) popT -= dt;
+    if (popT <= 0 && popQ.length && state === 'play') popNext();
     // 1面目の 指の絵
     if (run.tipT >= 0 && state === 'play') {
       run.tipT += dt;
@@ -337,7 +415,7 @@ DOMINO.UI = (function () {
   // ---------- ポーズ ----------
   function showPause() {
     clearTimers();
-    R.tip.className = ''; R.edge.style.opacity = 0;
+    R.tip.className = ''; R.edge.style.opacity = 0; R.warn.classList.remove('on');
     var st = sv().settings;
     S.pause.innerHTML =
       '<div class="card">' +

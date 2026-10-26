@@ -109,7 +109,8 @@ DOMINO.Bot = (function () {
     if (d < 1.2) sc -= (1.2 - d) * 40;
     if (node.nw) {                  // ギリギリねらい: 波に近づいて → にげる を くり返す
       var ng = s.cfg.nearGoal;
-      sc += Math.min(s.nearCount, ng) * 300 * node.nw;
+      // 数は「にげきった」ときに ふえる(sim の escape)。近づいている間も 半分くらい ほめる
+      sc += Math.min(s.nearCount + (s.inNear ? 0.6 : 0), ng) * 300 * node.nw;
       // ギリギリの中にいる → 2.4m より はなれて「出る」/ 外にいる → 1.6m より 近づいて「入る」
       if (s.nearCount < ng && s.wave.started) sc += s.inNear ? -Math.max(0, 2.7 - d) * 20 : 60 - Math.max(0, d - 1.3) * 12;
     }

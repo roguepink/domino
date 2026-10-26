@@ -27,7 +27,7 @@ const shared = new Set();         // ステージを片づけるときに 消さ
 let viewW = 1, viewH = 1, pixelRatio = 1, maxPR = 2;
 let shakeAmp = 0, shakeT = 0;
 let realClock = 0;
-const Q = { level: 0, frames: 0, time: 0, since: 0 };   // 自動で画質を下げる
+const Q = { level: 0, frames: 0, time: 0, since: 0, warm: 0, firstDone: false, good: 0 };   // 自動で画質を下げる
 const cam = { pos: new THREE.Vector3(0, 10, 10), look: new THREE.Vector3(), baseDist: 18, ready: false, fit: 1 };
 
 const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -490,7 +490,12 @@ function init(b) {
   [R.dust.pts, R.glow.pts].forEach((o) => { share(o.geometry); share(o.material); });
   share(R.confetti.mesh); share(R.debris.mesh);
   scene.background = new THREE.Color('#9fdcff');
-  resize();
+  scene.add(camera);
+  makeFlash();
+  makeGhost();
+  let lv = 0;
+  try { lv = +(localStorage.getItem(Q_KEY) || 0) || 0; } catch (e) {}
+  applyQuality(lv);
 }
 
 // ---------------------------------------------------------------- ステージを作る
@@ -528,7 +533,11 @@ function setSim(s, st) {
   R.mark.visible = false;
   for (const n of R.notes) n.visible = false;
   cam.ready = false; cam.fit = 1;
-  Q.frames = 0; Q.time = 0;
+  Q.frames = 0; Q.time = 0; Q.warm = 0;
+  if (R.ghost) { R.ghost.beat = false; R.ghost.fade = 1; }
+  FL.red = FL.white = FL.punch = 0;
+  applyHat();
+  try { renderer.compile(scene, camera); } catch (e) {}
 }
 
 function buildStage() {
@@ -1233,6 +1242,9 @@ function onEvents(list, s) {
       case 'bigfall': break;
       case 'goal': { const L = sim.level; for (let k = 0; k < 50; k++) R.confetti.spawn(rnd(-4, 4), rnd(2.5, 4), L.goalZ + rnd(0, 2), rnd(-2, 2), rnd(1, 4), rnd(-1, 2), 1, 1, 1, confCol(), rnd(2, 3.5)); break; }
       case 'giant': slowmo(0.35, 0.8); break;
+      case 'near': FL.red = Math.max(FL.red, 0.75); break;
+      case 'escape': { FL.white = 0.5; FL.red = 0; FL.punch = 1; const p = sim.p; R.glow.burst(p.x, 0.8, p.z, 22, 3.5, 0.6, 0.35, [1, 1, 1], 1, 1.5); break; }
+      case 'beatghost': { const Gh = R.ghost; if (Gh && Gh.g.visible) { const q = Gh.g.position; R.glow.burst(q.x, 0.8, -q.z, 26, 3, 0.8, 0.35, srgb('#a8e4ff'), 1, 1.5); } if (Gh) Gh.beat = true; break; }
       case 'clear': {
         const g = sim.giant || S.giantDef;
         for (let k = 0; k < 140; k++) R.confetti.spawn(rnd(-6, 6), rnd(5, 9), g.z + rnd(-3, 8), rnd(-2, 2), rnd(-1, 3), rnd(-2, 2), 1, 1, 1, confCol(), rnd(3, 5));
@@ -1284,6 +1296,7 @@ function render(dt, realDt) {
   updateItemsObjs(t, dt, zMin, zMax);
   updateGiantFinale(t, dt);
   updatePlayer(dt, realDt, t);
+  updateGhost(dt);
   updateFX(dt, t);
   updateCamera(realDt);
   if (S.starsSky) S.starsSky.position.copy(camera.position);
@@ -1575,11 +1588,68 @@ function updateFX(dt, t) {
   } else if (sim.state !== 'fail') R.mark.visible = false;
 }
 
+// ---------------------------------------------------------------- 画面の光(near = 赤いふち / escape = 白い光)
+const FL = { red: 0, white: 0, punch: 0 };
+function makeFlash() {
+  const vig = share(ctex(canvas(128, 128, (g) => {
+    const gr = g.createRadialGradient(64, 64, 30, 64, 64, 92);
+    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,1)');
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  })));
+  const geo = share(new THREE.PlaneGeometry(1, 1));
+  const mk = (map, color) => { const m = new THREE.Mesh(geo, share(new THREE.MeshBasicMaterial({ map, color, transparent: true, opacity: 0, depthTest: false, depthWrite: false, fog: false }))); m.renderOrder = 999; m.frustumCulled = false; m.visible = false; m.position.z = -0.5; camera.add(m); return m; };
+  R.vig = mk(vig, 0xff2a3c); R.white = mk(null, 0xffffff);
+}
+function updateFlash(rdt) {
+  const h = 2 * 0.5 * Math.tan(camera.fov * PI / 360), w = h * camera.aspect;
+  const danger = sim && sim.state === 'run' && sim.wave.started && sim.danger < DOM.CONFIG.NEAR + 0.4;
+  FL.red = Math.max(danger ? 0.28 + 0.12 * Math.sin(realClock * 9) : 0, FL.red - rdt * 1.6);
+  FL.white = Math.max(0, FL.white - rdt * 3.2);
+  for (const [m, a] of [[R.vig, FL.red], [R.white, FL.white]]) { m.visible = a > 0.01; m.material.opacity = Math.min(1, a); m.scale.set(w * 1.02, h * 1.02, 1); }
+}
+
+// ---------------------------------------------------------------- ゴースト(前の自分)
+function makeGhost() {
+  const g = new THREE.Group();
+  const mat = share(new THREE.MeshBasicMaterial({ color: 0xa8e4ff, transparent: true, opacity: 0.38, depthWrite: false }));
+  const body = new THREE.Mesh(share(new THREE.BoxGeometry(0.56, 0.84, 0.3)), mat); body.position.y = 0.26 + 0.42; g.add(body);
+  const face = new THREE.Mesh(share(new THREE.PlaneGeometry(0.5, 0.5)), share(new THREE.MeshBasicMaterial({ map: R.faces.run, transparent: true, opacity: 0.55, depthWrite: false, color: 0x2a5a90 })));
+  face.rotation.y = PI; face.position.set(0, 0.26 + 0.84 * 0.62, -0.153); g.add(face);
+  const legGeo = share(new THREE.CapsuleGeometry(0.065, 0.14, 3, 6));
+  const legs = [];
+  for (const x of [-0.13, 0.13]) { const l = new THREE.Mesh(legGeo, mat); l.position.set(x, 0.14, 0); g.add(l); legs.push(l); }
+  g.scale.setScalar(1.22); g.visible = false; g.renderOrder = 4;
+  scene.add(g);
+  R.ghost = { g, legs, mat, yaw: 0, fade: 1, beat: false };
+}
+function updateGhost(dt) {
+  const Gh = R.ghost, G = game(), gh = G && G.ghost;
+  const path = gh && gh.path;
+  if (!path || path.length < 6 || !sim || RP || (sim.state !== 'run' && sim.state !== 'goal')) { Gh.g.visible = false; return; }
+  const step = (gh.every || 6) * CFG.DT, n = path.length / 3;
+  const f = sim.t / step - 1, i = Math.floor(f);
+  if (i < 0 || i >= n - 1) { Gh.g.visible = false; return; }
+  const k = f - i, a = i * 3, b = a + 3;
+  const x = lerp(path[a], path[b], k), z = lerp(path[a + 1], path[b + 1], k), y = lerp(path[a + 2], path[b + 2], k);
+  // 自分と重なるときは うすく
+  const dz = Math.abs(z - sim.p.z), dx = Math.abs(x - sim.p.x);
+  const near = dz < 1.2 && dx < 0.9 ? 0.35 : 1;
+  Gh.fade = Gh.beat ? Math.max(0, Gh.fade - dt * 1.5) : Math.min(1, Gh.fade + dt * 3);
+  Gh.mat.opacity = 0.38 * near * Gh.fade;
+  Gh.g.visible = Gh.fade > 0.02;
+  Gh.g.position.set(x, y, -z);
+  const hx = path[b] - path[a], hz = path[b + 1] - path[a + 1];
+  if (Math.abs(hx) + Math.abs(hz) > 0.01) { const tgt = -Math.atan2(hx, hz); let d = tgt - Gh.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); Gh.yaw += d * ease(10, dt); }
+  Gh.g.rotation.y = Gh.yaw;
+  const sw = Math.sin(sim.t * 15);
+  Gh.legs[0].rotation.x = sw * 0.8; Gh.legs[1].rotation.x = -sw * 0.8;
+}
+
 // ---------------------------------------------------------------- カメラ
 function camFit() {
   const aspect = viewW / Math.max(1, viewH);
   const vfov = aspect < 1 ? 62 : 50;
-  camera.fov = vfov; camera.aspect = aspect; camera.updateProjectionMatrix();
+  camera.fov = vfov; cam.fov0 = vfov; camera.aspect = aspect; camera.updateProjectionMatrix();
   const tanH = Math.tan(vfov * PI / 360) * aspect;
   cam.baseDist = clamp(5.1 / tanH, 11, 26);     // 主人公のところで コースのはば(9m)+少し が横に入る
   const sc = viewH * pixelRatio / (2 * Math.tan(vfov * PI / 360));
@@ -1614,7 +1684,11 @@ function updateCamera(rdt) {
     const fy = frontScreenY();
     if (fy != null && st === 'run') { if (fy > 0.9) want = Math.min(1.3, cam.fit + 0.5); else if (fy < 0.8) want = Math.max(1, cam.fit - 0.5); else want = cam.fit; }
     cam.fit = lerp(cam.fit, want, ease(want < cam.fit ? 2.6 : 1.6, rdt));
-    const dd = (st === 'fail' && sim.failReason === 'caught') ? D * 0.72 : D * (1 + 0.1 * fear) * cam.fit;
+    // 波が 5m より近いと 少し寄る(迫ってくる感じ)
+    const close = sim.wave.started && st === 'run' ? clamp((5 - sim.danger) / 4, 0, 1) : 0;
+    cam.close = lerp(cam.close || 0, close, ease(3, rdt));
+    const dd = (st === 'fail' && sim.failReason === 'caught') ? D * 0.72 : D * (1 - 0.1 * cam.close) * cam.fit;
+    cam.wob = cam.close > 0.3 && settingShake() ? 0.03 * cam.close : 0;
     const ahead = 3.2 - (cam.fit - 1) * 3;
     look.set(p.x * 0.35, 0.4, -(p.z + ahead));
     pos.set(look.x, look.y + Math.sin(PITCH) * dd, look.z + Math.cos(PITCH) * dd);
@@ -1622,12 +1696,15 @@ function updateCamera(rdt) {
   if (!cam.ready) { cam.pos.copy(pos); cam.look.copy(look); cam.ready = true; }
   cam.pos.lerp(pos, ease(kPos, rdt)); cam.look.lerp(look, ease(kLook, rdt));
   camera.position.copy(cam.pos);
+  if (cam.wob && !RP && st === 'run') { camera.position.x += rnd(-cam.wob, cam.wob); camera.position.y += rnd(-cam.wob, cam.wob); }
   if (shakeT > 0) {
     shakeT -= rdt; const a = shakeAmp * clamp(shakeT / 0.25, 0, 1);
     camera.position.x += rnd(-a, a); camera.position.y += rnd(-a, a) * 0.6; camera.position.z += rnd(-a, a) * 0.5;
     if (shakeT <= 0) shakeAmp = 0;
   }
   camera.lookAt(cam.look);
+  if (FL.punch > 0) { FL.punch = Math.max(0, FL.punch - rdt * 2.5); camera.fov = cam.fov0 * (1 - 0.05 * Math.sin(FL.punch * PI)); camera.updateProjectionMatrix(); }
+  updateFlash(rdt);
   if (window.__camOverride) { const o = window.__camOverride; camera.position.set(o[0], o[1], -o[2]); camera.lookAt(o[3], o[4], -o[5]); }
   // 影は 見ている所のまわりだけ
   const fz = -cam.look.z;
@@ -1705,20 +1782,38 @@ function resize() {
   renderer.setSize(viewW, viewH, false);
   camFit();
 }
+// 画質の段: 0 ふつう / 1 ピクセル比 1.5 / 2 1.2 + 影を小さく / 3 影なし / 4 ピクセル比 1
+const Q_KEY = 'domino-q';
+function applyQuality(lv) {
+  lv = clamp(lv | 0, 0, 4);
+  Q.level = lv;
+  pixelRatio = lv >= 4 ? 1 : lv >= 2 ? Math.min(maxPR, 1.2) : lv >= 1 ? Math.min(maxPR, 1.5) : maxPR;
+  const ms = lv >= 2 ? 512 : 1024;
+  if (R.sun.shadow.mapSize.x !== ms) { R.sun.shadow.mapSize.set(ms, ms); if (R.sun.shadow.map) { R.sun.shadow.map.dispose(); R.sun.shadow.map = null; } }
+  const sh = lv < 3;
+  if (renderer.shadowMap.enabled !== sh) {
+    renderer.shadowMap.enabled = sh; R.sun.castShadow = sh;
+    scene.traverse((o) => { if (o.material) { const mm = Array.isArray(o.material) ? o.material : [o.material]; for (const m of mm) m.needsUpdate = true; } });
+  }
+  resize();
+}
+function saveQuality(lv) { try { localStorage.setItem(Q_KEY, String(lv)); } catch (e) {} }
 function autoQuality(rdt) {
-  if (!rdt) return;
-  Q.frames++; Q.time += rdt; Q.since += rdt;
-  if (Q.time < 2.5) return;
+  if (!rdt || rdt >= 0.1) { Q.since += rdt || 0; return; }      // 止まっていた・裏にいた コマは 数えない
+  Q.since += rdt; Q.warm += rdt;
+  if (Q.warm < 0.5) return;                                    // はじめの 0.5 秒は 準備(シェーダーを作る)で 遅いので 見ない
+  Q.frames++; Q.time += rdt;
+  const first = !Q.firstDone;
+  if (Q.time < (first ? 1.5 : 2.5)) return;
   const fps = Q.frames / Q.time;
   Q.frames = 0; Q.time = 0;
-  if (fps < 45 && Q.since > 3 && Q.level < 4) {
-    Q.level++; Q.since = 0;
-    if (Q.level === 1) pixelRatio = Math.min(maxPR, 1.5);
-    else if (Q.level === 2) { pixelRatio = Math.min(maxPR, 1.2); R.sun.shadow.mapSize.set(512, 512); if (R.sun.shadow.map) { R.sun.shadow.map.dispose(); R.sun.shadow.map = null; } }
-    else if (Q.level === 3) { renderer.shadowMap.enabled = false; R.sun.castShadow = false; scene.traverse((o) => { if (o.material) { const ms = Array.isArray(o.material) ? o.material : [o.material]; for (const m of ms) m.needsUpdate = true; } }); }
-    else if (Q.level === 4) pixelRatio = 1;
-    resize();
+  if (first) {
+    Q.firstDone = true;
+    if (fps < 30 && Q.level < 4) { applyQuality(Q.level + 2); saveQuality(Q.level); Q.since = 0; return; }   // とても重い → 2段いっぺんに
   }
+  if (fps < 45 && Q.since > 2.5 && Q.level < 4) { applyQuality(Q.level + 1); saveQuality(Q.level); Q.since = 0; Q.good = 0; return; }
+  // ずっと軽いなら、次に開いたときは 1段 上げてみる(今は 変えない)
+  if (fps > 58 && Q.level > 0) { Q.good = (Q.good || 0) + 1; if (Q.good === 4) saveQuality(Q.level - 1); }
 }
 
 // UI が「とばす」を押したとき: 終わりの形(大仕掛けは くずれたまま)にして やめる。onDone は呼ばない

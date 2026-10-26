@@ -255,6 +255,35 @@ DOMINO.Audio = (function () {
     tone(ctx, out, t + 0.07, { f: 1760, v: 0.13, a: 0.002, d: 0.35 });
     tone(ctx, out, t + 0.07, { f: 3520, v: 0.03, a: 0.002, d: 0.15 });
   };
+  // 波が近い(あぶない!)「ピピッ」の短い警告
+  S.warn = function (ctx, out, t) {
+    var lp = filt(ctx, 'lowpass', 3000, 0.7, out);
+    tone(ctx, lp, t, { type: 'square', f: 1319, v: 0.07, a: 0.002, d: 0.06 });
+    tone(ctx, lp, t + 0.08, { type: 'square', f: 988, v: 0.07, a: 0.002, d: 0.08 });
+    hiss(ctx, out, t, { f: 900, f2: 2500, q: 1.2, v: 0.06, a: 0.01, d: 0.1 });
+  };
+  // にげきった「セーフ!」シュッ+ピン。o.n が増えるほど 少し高く・はなやかに
+  S.escape = function (ctx, out, t, o) {
+    var n = clamp((o && o.n) || 1, 1, 8), up = Math.pow(2, (n - 1) * 2 / 12);
+    hiss(ctx, out, t, { f: 1200, f2: 5500, q: 1.4, v: 0.15, a: 0.01, d: 0.12 });
+    var ns = [1, 1.5, 2, 2.5];
+    for (var i = 0; i < Math.min(4, 1 + Math.floor(n / 2)); i++) {
+      tone(ctx, pan(ctx, out, i % 2 ? 0.3 : -0.3), t + 0.07 + i * 0.05, { f: 1319 * up * ns[i], v: 0.12 - i * 0.015, a: 0.002, d: 0.35 });
+    }
+    tone(ctx, out, t + 0.07, { f: 2638 * up, v: 0.03, a: 0.002, d: 0.15 });
+    if (n >= 3) hiss(ctx, out, t + 0.1, { ft: 'highpass', f: 7000, q: 0.7, v: 0.04, a: 0.02, d: 0.35 });
+  };
+  // 前の自分(ゴースト)を ぬいた: 明るい短い音
+  S.beatghost = function (ctx, out, t) {
+    var ns = [1568, 2093, 2637];
+    for (var i = 0; i < ns.length; i++) tone(ctx, out, t + i * 0.055, { type: 'triangle', f: ns[i], v: 0.12, a: 0.003, d: 0.22 });
+    tone(ctx, out, t + 0.11, { f: 3136, v: 0.04, a: 0.003, d: 0.3 });
+  };
+  // ドミノ残り少ない「ピッ」(小さく)
+  S.tick = function (ctx, out, t) {
+    tone(ctx, out, t, { f: 1760, v: 0.06, a: 0.002, d: 0.045 });
+    tone(ctx, out, t, { type: 'triangle', f: 880, v: 0.03, a: 0.002, d: 0.04 });
+  };
   // 波が動き出す「カチッ」+ 小さな合図「ピッ」
   S.wavestart = function (ctx, out, t) {
     S.clack(ctx, out, t, { f: 880, v: 0.4 });
@@ -593,12 +622,17 @@ DOMINO.Audio = (function () {
     }
   }
 
-  // 心臓の予約。hs = { next, beats }、c = 近さ 0..1
-  function heartSchedule(hs, ctx, out, now, c, horizon) {
-    var interval = 0.95 - 0.5 * c;              // 0.95 秒 → 0.45 秒
+  // 波までの長さ d(m)→ 心臓の { c 近さ 0..1, iv 間かく, v 大きさ }。4.5m から鳴り、3m から強く
+  function heartOf(d) {
+    var c = clamp((4.5 - d) / 4.5, 0, 1), strong = clamp((3 - d) / 3, 0, 1);
+    return { c: c, iv: 0.95 - 0.5 * c, v: 0.14 + 0.12 * c + 0.45 * strong };
+  }
+  // 心臓の予約。hs = { next, beats }、h = heartOf の答え
+  function heartSchedule(hs, ctx, out, now, h, horizon) {
+    var interval = h.iv;
     if (hs.next < now) hs.next = now + 0.02;
     while (hs.next < horizon) {
-      S.heart(ctx, out, hs.next, { v: 0.22 + 0.5 * c });
+      S.heart(ctx, out, hs.next, { v: h.v });
       hs.beats++;
       hs.next += interval;
     }
@@ -647,9 +681,9 @@ DOMINO.Audio = (function () {
     heart: { next: 0, beats: 0, on: false },
     click: { last: 0, clicks: 0, dropped: 0 },
     layN: 0, layLast: 0, musLevel: -1, duck: 1, duckUntil: 0,
-    wind: null, rivalSeen: 0, rivalLast: 0, rivalClicks: 0
+    wind: null, rumble: null, tickNext: 0, rivalSeen: 0, rivalLast: 0, rivalClicks: 0
   };
-  var stats = { created: false, unlocks: 0, sfx: {}, clicks: 0, dropped: 0, lays: 0, beats: 0, steps: 0, rivalClicks: 0, errors: 0 };
+  var stats = { created: false, unlocks: 0, sfx: {}, clicks: 0, dropped: 0, lays: 0, beats: 0, steps: 0, rivalClicks: 0, ticks: 0, rumble: 0, errors: 0 };
 
   function settings() { var s = DOMINO.Save && DOMINO.Save.data && DOMINO.Save.data.settings; return s || { sound: true, music: true }; }
   function soundOn() { return settings().sound !== false; }
@@ -719,27 +753,51 @@ DOMINO.Audio = (function () {
     A.wind = { g: g, bp: bp, bp2: bp2, src: src, level: 0 };
   }
 
+  // 波が 6m より近いと 低い「ゴゴゴ」(地ひびき)。近いほど大きく
+  function rumbleLevel(d) { var k = clamp((6 - d) / 6, 0, 1); return 0.34 * Math.pow(k, 1.5); }
+  function makeRumble(ctx, out) {
+    var g = gain(ctx, out, 0);
+    var trem = gain(ctx, g, 0.7);
+    var lfo = osc(ctx, 'sine', 7, ctx.currentTime, 36000, gain(ctx, trem.gain, 0.3)); lfo.frequency.value = 7;
+    var src = ctx.createBufferSource(); src.buffer = noiseBuf(ctx); src.loop = true;
+    src.connect(filt(ctx, 'lowpass', 170, 1.2, trem));
+    src.connect(filt(ctx, 'bandpass', 260, 2, gain(ctx, trem, 0.7)));   // スマホでも聞こえる 少し高い成分
+    src.start();
+    return { g: g, src: src, lfo: lfo, level: 0 };
+  }
+  function stopRumble() {
+    if (!A.rumble) return;
+    try { var t = A.ctx.currentTime; A.rumble.g.gain.setTargetAtTime(0, t, 0.1); A.rumble.src.stop(t + 0.6); A.rumble.lfo.stop(t + 0.6); } catch (e) {}
+    A.rumble = null;
+  }
+  // ポーズのまま「やり直す」「ステージ選び」に行っても 音が止まったままにならないように
+  function unpause() {
+    A.paused = false;
+    if (A.ctx && A.ctx.state !== 'running' && !A.hidden) { try { var r = A.ctx.resume(); if (r && r.catch) r.catch(function () {}); } catch (e) {} }
+  }
   function stageFn(stage) {
+    unpause();
     A.stageObj = stage;
     var song = songFor(stage);
     A.song = song;
     A.heart.on = false; A.rivalSeen = 0; A.duck = 1; A.duckUntil = 0;
-    A.click.last = 0;
-    stopWind();
+    A.click.last = 0; A.tickNext = 0;
+    stopWind(); stopRumble();
     if (A.mus.song !== song) { A.mus.song = song; A.mus.step = 0; A.mus.next = 0; }
     A.mus.on = true; A.mus.tempo = 1; A.mus.inten = 0;
     if (A.ctx) setMusicLevel(musicOn() ? song.vol * 0.4 : 0);
   }
   function start(stage) {
     ensure();
+    unpause();
     if (stage && stage !== A.stageObj) stageFn(stage);
     A.mus.on = true;
-    if (A.ctx && A.ctx.state !== 'running' && !A.paused) { try { var r = A.ctx.resume(); if (r && r.catch) r.catch(function () {}); } catch (e) {} }
   }
   function stop() {
     A.mus.on = false; A.heart.on = false;
     A.mus.song = null;
-    stopWind();
+    stopWind(); stopRumble();
+    unpause();
     if (A.ctx) setMusicLevel(0, true);
   }
   function pause(on) {
@@ -786,9 +844,12 @@ DOMINO.Audio = (function () {
         case 'giant': play('giant'); A.duck = 0.2; A.duckUntil = A.ctx ? A.ctx.currentTime + 4.5 : 0; break;
         case 'clear': play('clear', null, 0.05); A.heart.on = false; break;
         case 'fail': play('fail', { why: e.why }); A.heart.on = false; A.duck = 0.5; A.duckUntil = A.ctx ? A.ctx.currentTime + 2 : 0; break;
+        case 'near': play('warn'); break;
+        case 'escape': play('escape', { n: e.n }); break;
+        case 'beatghost': play('beatghost'); break;
         case 'revive': play('revive'); A.duck = 1; A.duckUntil = 0; break;
         case 'gate': case 'land': case 'bump': case 'boost': case 'split': case 'bridge': case 'bomb': case 'bigfall':
-        case 'near': case 'wavestart': case 'low': case 'empty': case 'stepaside':
+        case 'wavestart': case 'low': case 'empty': case 'stepaside':
           play(ty); break;
       }
     }
@@ -807,10 +868,21 @@ DOMINO.Audio = (function () {
     try {
       var playing = state === 'play' && sim && sim.state === 'run';
       // 心臓: 波が 4m より近いと ドクン…ドクン(近いほど 速く・大きく)
-      var c = 0;
-      if (playing && sim.wave && sim.wave.started && sim.danger < 4 && !(sim.p && sim.p.safe > 0)) c = clamp(1 - sim.danger / 4, 0, 1);
-      if (c > 0 && soundOn()) { var b0 = A.heart.beats; heartSchedule(A.heart, ctx, A.ch.sfx, now, c, now + 0.1); stats.beats += A.heart.beats - b0; }
+      var c = 0, chase = playing && sim.wave && sim.wave.started && !(sim.p && sim.p.safe > 0), dg = chase ? sim.danger : 99;
+      var hb = heartOf(dg);
+      c = hb.c;
+      if (c > 0 && soundOn()) { var b0 = A.heart.beats; heartSchedule(A.heart, ctx, A.ch.sfx, now, hb, now + 0.1); stats.beats += A.heart.beats - b0; }
       else A.heart.next = 0;
+      // 地ひびき(6m より近い)
+      var rl = soundOn() ? rumbleLevel(dg) : 0;
+      if (rl > 0 && !A.rumble) A.rumble = makeRumble(ctx, A.ch.sfx);
+      if (A.rumble && Math.abs(rl - A.rumble.level) > 0.003) { A.rumble.level = rl; A.rumble.g.gain.setTargetAtTime(rl, now, 0.15); }
+      stats.rumble = A.rumble ? +A.rumble.level.toFixed(3) : 0;
+      // ドミノ残り 10本以下: 小さな ピッ(本数が減るほど 少し速く。0本で止める)
+      if (playing && sim.stock > 0 && sim.stock <= 10 && soundOn()) {
+        if (!A.tickNext || A.tickNext < now - 0.5) A.tickNext = now + 0.05;
+        if (A.tickNext <= now + 0.05) { S.tick(ctx, A.ch.sfx, Math.max(now + 0.005, A.tickNext)); stats.ticks++; A.tickNext += 0.45 + 0.055 * sim.stock; }
+      } else A.tickNext = 0;
 
       // 風(ヒュー): obj の wind が on の間
       var windOn = false, windDir = 1;
@@ -891,7 +963,8 @@ DOMINO.Audio = (function () {
           var ms = { song: song, step: 0, next: 0.05, tempo: 1.12, inten: 1 };
           musicSchedule(ms, oc, ch, secs - 0.2);
           var hs = { next: 0.05, beats: 0 };
-          heartSchedule(hs, oc, ch.sfx, 0.05, 1, secs - 0.3);
+          heartSchedule(hs, oc, ch.sfx, 0.05, heartOf(0.5), secs - 0.3);
+          var rb2 = makeRumble(oc, ch.sfx); rb2.g.gain.setValueAtTime(rumbleLevel(0.5), 0); rb2.src.stop(secs); rb2.lfo.stop(secs);
           S.giant(oc, ch.sfx, 0.6, {}); S.bomb(oc, ch.sfx, 0.3, {}); S.star(oc, ch.sfx, 1.0, {}); S.clear(oc, ch.sfx, 2.2, {});
           info.steps = ms.step; info.beats = hs.beats;
         }
@@ -900,9 +973,11 @@ DOMINO.Audio = (function () {
         ch.echoWet.gain.value = m.song.echo || 0.12; ch.mus.gain.value = MUS_BASE * m.song.vol;
         musicSchedule(m, oc, ch, secs - 0.5);
         info.steps = m.step;
+      } else if (kind === 'rumble') {
+        var rb = makeRumble(oc, ch.sfx); rb.g.gain.setValueAtTime(rumbleLevel(o.d == null ? 1 : o.d), 0); rb.src.stop(secs); rb.lfo.stop(secs);
       } else if (kind === 'heart') {
         var h = { next: 0.05, beats: 0 };
-        heartSchedule(h, oc, ch.sfx, 0.05, o.c == null ? 1 : o.c, secs - 0.4);
+        heartSchedule(h, oc, ch.sfx, 0.05, heartOf(o.d == null ? 1 : o.d), secs - 0.4);
         info.beats = h.beats;
       }
       return oc.startRendering().then(function (buf) { return { buf: buf, info: info }; });
@@ -915,7 +990,7 @@ DOMINO.Audio = (function () {
     update: update, setSound: setSound, setMusic: setMusic,
     stats: stats, offline: offline,
     info: function () {
-      return { state: A.ctx ? A.ctx.state : 'none', world: A.song && A.song.name, musicOn: A.mus.on, tempo: +A.mus.tempo.toFixed(3),
+      return { state: A.ctx ? A.ctx.state : 'none', paused: A.paused, world: A.song && A.song.name, musicOn: A.mus.on, tempo: +A.mus.tempo.toFixed(3),
         inten: +A.mus.inten.toFixed(2), musLevel: +A.musLevel.toFixed(3), heartOn: A.heart.next > 0, stats: stats };
     }
   };
