@@ -43,8 +43,16 @@ DOMINO.Sim = (function () {
       far: w.far || C.WAVE_FAR, catchup: w.catchup != null ? w.catchup : C.WAVE_CATCHUP,
       closer: w.closer != null ? w.closer : C.WAVE_CLOSER,
       nearGoal: stage.nearGoal || 3,
-      sinkPeriod: stage.sinkPeriod || 3.2      // しずむ床(f)の1回分の秒
+      sinkPeriod: stage.sinkPeriod || 3.2,     // しずむ床(f)の1回分の秒
+      stun: C.STUN
     };
+    // むずかしさ「やさしい」(はじめは こちら): 波を おそく・ドミノ多め・しびれ短め。DOMINO.mode = 'normal' で ふつう
+    this.easy = DOMINO.mode !== 'normal';
+    if (this.easy) {
+      var E = C.EASY, f = this.cfg;
+      f.v0 *= E.v; f.max *= E.v; f.acc *= E.acc; f.delay += E.delay;
+      f.far += E.far; f.catchup *= E.catchup; f.closer *= E.closer; f.stun *= E.stun;
+    }
     this.t = 0;
     this.state = 'run';
     this.failReason = '';
@@ -52,7 +60,7 @@ DOMINO.Sim = (function () {
     this.p = { x: L.start.x, z: L.start.z, y: 0, vx: 0, vy: 0, air: false, stun: 0, boost: 0, coyote: 0.1, jumpBuf: 0,
       heading: 0, s: 0, onIce: false, done: false, hitCool: 0, blocked: false, ledge: 0, jumped: false, twin: 0, safe: 0, wind: 0 };
     this.doms = [];
-    this.stock = stage.stock || C.STOCK;
+    this.stock = Math.ceil((stage.stock || C.STOCK) * (this.easy ? C.EASY.stock : 1));
     this.stockUsed = 0;
     this.items = L.items.map(function (it) { return { t: it.t, x: it.x, z: it.z, n: it.n || 0, taken: false }; });
     this.starsTotal = 0; for (var q = 0; q < this.items.length; q++) if (this.items[q].t === 'star') this.starsTotal++;
@@ -274,7 +282,7 @@ DOMINO.Sim = (function () {
   P._hit = function (why) {
     var p = this.p;
     if (p.hitCool > 0 || p.safe > 0 || this.state !== 'run') return;
-    p.stun = C.STUN; p.hitCool = C.STUN + 0.5;
+    p.stun = this.cfg.stun; p.hitCool = this.cfg.stun + 0.5;
     this.lastStun = this.t; this.lastStunWhy = why;
     this._emit('stun', { why: why });
   };

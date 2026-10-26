@@ -163,7 +163,7 @@ DOMINO.UI = (function () {
     R.tip = h('div', '', ''); R.tip.id = 'tip';
     R.tip.innerHTML =
       '<div class="half l"><div class="finger swipe">👆</div><span class="ar al">◀</span><span class="ar arr">▶</span><p>左を なぞって<br>左右に うごく</p></div>' +
-      '<div class="half r"><div class="finger tap">👆</div><div class="ripple"></div><p>右を タップで<br>ジャンプ</p></div>' +
+      '<div class="half r"><p>右の ボタンで<br>ジャンプ<small>(穴は 4の島から)</small></p><div class="finger tap">👇</div><div class="ripple"></div></div>' +
       '<div class="avoid"><span>🪨 岩・かべは よけよう</span></div>';
     root.appendChild(R.tip);
 
@@ -171,6 +171,17 @@ DOMINO.UI = (function () {
     S.title = scr('title'); S.stages = scr('stages'); S.intro = scr('intro'); S.pause = scr('pause');
     S.replay = scr('replay'); S.result = scr('result'); S.skins = scr('skins'); S.settings = scr('settings'); S.hud = scr('hudscr'); S.ending = scr('ending');
     R.toast = h('div', '', ''); R.toast.id = 'toast'; root.appendChild(R.toast);
+    // 見えるジャンプボタン(右がわの どこをタップしても ジャンプは そのまま)
+    R.jump = h('button', '', '<span class="ar">↑</span><span class="jt">ジャンプ</span>'); R.jump.id = 'jumpBtn'; R.jump.type = 'button'; R.jump.setAttribute('aria-label', 'ジャンプ');
+    root.appendChild(R.jump);
+    var jdown = function (e) {
+      if (e.cancelable) e.preventDefault();
+      if (DOMINO.Input && DOMINO.Input.pressJump) DOMINO.Input.pressJump();
+      R.jump.classList.add('down');
+    };
+    var jup = function () { R.jump.classList.remove('down'); };
+    if (window.PointerEvent) { R.jump.addEventListener('pointerdown', jdown); R.jump.addEventListener('pointerup', jup); R.jump.addEventListener('pointercancel', jup); R.jump.addEventListener('pointerleave', jup); }
+    else { R.jump.addEventListener('touchstart', jdown, { passive: false }); R.jump.addEventListener('touchend', jup); R.jump.addEventListener('mousedown', jdown); R.jump.addEventListener('mouseup', jup); }
 
     buildTitle();
   }
@@ -201,7 +212,7 @@ DOMINO.UI = (function () {
   function refreshTitle() {
     var t = playTarget(), sub = $('tPlaySub');
     sub.textContent = t ? ('ステージ ' + label(t) + (t === 1 && !sv().stars[1] ? ' から' : ' から つづき')) : (allCleared() ? 'ぜんぶ クリア! 🎉' : 'つぎの面は じゅんび中');
-    $('tStars').innerHTML = '<span class="st">★</span> ' + DOMINO.Save.totalStars() + '<span class="sep"></span>' + coinHTML(sv().coins || 0);
+    $('tStars').innerHTML = '<span class="st">★</span> ' + DOMINO.Save.totalStars() + '<span class="sep"></span>' + coinHTML(sv().coins || 0) + '<span class="sep"></span>' + levelHTML();
   }
 
   // ---------- ステージ選び ----------
@@ -209,7 +220,7 @@ DOMINO.UI = (function () {
   function buildStages() {
     var W = Math.min(root.clientWidth || window.innerWidth, 560);
     var unlocked = DOMINO.Save.unlocked(), target = playTarget();
-    var html = '<div class="bar"><button class="btn back" data-act="menu">◀ もどる</button><b>ステージ</b>' +
+    var html = '<div class="bar"><button class="btn back" data-act="menu">◀ もどる</button><b>ステージ ' + levelHTML() + '</b>' +
       '<span class="bstars"><span class="st">★</span> ' + DOMINO.Save.totalStars() + '</span></div><div class="scroll" id="stScroll"><div class="map" style="max-width:' + W + 'px">';
     var STEP = 100, TOP = 172;
     for (var w = 0; w < DOMINO.WORLDS.length; w++) {
@@ -287,7 +298,7 @@ DOMINO.UI = (function () {
   }
 
   // ---------- プレイ中 ----------
-  function hideHud() { R.hud.classList.remove('on'); R.edge.style.opacity = 0; R.tip.className = ''; if (R.warn) R.warn.classList.remove('on'); popQ = []; R.combo.className = 'combo'; R.pop.className = 'pop'; }
+  function hideHud() { if (R.jump) R.jump.className = ''; R.hud.classList.remove('on'); R.edge.style.opacity = 0; R.tip.className = ''; if (R.warn) R.warn.classList.remove('on'); popQ = []; R.combo.className = 'combo'; R.pop.className = 'pop'; }
   function showHud(sim) {
     clearTimers();
     show('hud');
@@ -299,6 +310,9 @@ DOMINO.UI = (function () {
       if (st && st.id === 1 && !(sv().seenTips || {})[1]) run.tipT = 0;
     }
     R.tip.className = run.tipT >= 0 ? 'on' : '';
+    // ジャンプが いるのは 4の島(穴)から。それまでは ボタンを うすく
+    var st2 = sim.stage || {}, needJump = (st2.world || Math.ceil((st2.id || 1) / 10)) >= 4 || st2.edge === 'open';
+    R.jump.className = 'on' + (needJump ? '' : ' dim');
   }
   // 文字の看板は 1つずつ 順番に出す(重ならない)。大事なもの(urgent)は 先に
   var popQ = [], popT = 0, POP_SEC = 0.75;
@@ -438,7 +452,7 @@ DOMINO.UI = (function () {
   // ---------- ポーズ ----------
   function showPause() {
     clearTimers();
-    R.tip.className = ''; R.edge.style.opacity = 0; R.warn.classList.remove('on');
+    R.tip.className = ''; R.edge.style.opacity = 0; R.warn.classList.remove('on'); R.jump.className = '';
     var st = sv().settings;
     S.pause.innerHTML =
       '<div class="card">' +
@@ -450,9 +464,11 @@ DOMINO.UI = (function () {
       '</div>';
     show('pause');
   }
+  function tvText(key, on) { return key === 'hard' ? (on ? 'ふつう' : 'やさしい') : (on ? 'オン' : 'オフ'); }
   function toggleHTML(key, name, on) {
-    return '<button class="tg' + (on ? ' on' : '') + '" data-act="toggle" data-key="' + key + '"><span class="tn">' + name + '</span><span class="sw"><i></i></span><span class="tv">' + (on ? 'オン' : 'オフ') + '</span></button>';
+    return '<button class="tg' + (on ? ' on' : '') + (key === 'hard' ? ' hard' : '') + '" data-act="toggle" data-key="' + key + '"><span class="tn">' + name + '</span><span class="sw"><i></i></span><span class="tv">' + tvText(key, on) + '</span></button>';
   }
+  function levelHTML() { var hd = !!sv().settings.hard; return '<span class="lvl' + (hd ? ' hard' : '') + '">' + (hd ? 'ふつう' : 'やさしい') + '</span>'; }
 
   // ---------- 結果 ----------
   function showResult(res, sim) {
@@ -623,6 +639,8 @@ DOMINO.UI = (function () {
     S.settings.innerHTML = '<div class="bar"><button class="btn back" data-act="menu">◀ もどる</button><b>せってい</b><span></span></div>' +
       '<div class="scroll pad"><div class="list">' +
         toggleHTML('sound', '効果音', st.sound) + toggleHTML('music', 'BGM', st.music) + toggleHTML('shake', '画面の ゆれ', st.shake) +
+        toggleHTML('hard', 'むずかしさ', !!st.hard) +
+        '<p class="hnote">「やさしい」は 波が ゆっくり。なれたら「ふつう」に しよう</p>' +
       '</div>' +
       '<div class="danger-zone" id="resetZone">' + resetHTML() + '</div>' +
       '<p class="ver">ドミノ ラッシュ ・ 広告なし ・ 登録なし</p></div>';
@@ -641,7 +659,8 @@ DOMINO.UI = (function () {
       if (key === 'music' && A && A.setMusic) A.setMusic(st.music);
     } catch (e) {}
     var bs = root.querySelectorAll('.tg[data-key="' + key + '"]');
-    for (var i = 0; i < bs.length; i++) { bs[i].classList.toggle('on', st[key]); bs[i].querySelector('.tv').textContent = st[key] ? 'オン' : 'オフ'; }
+    for (var i = 0; i < bs.length; i++) { bs[i].classList.toggle('on', st[key]); bs[i].querySelector('.tv').textContent = tvText(key, st[key]); }
+    if (key === 'hard') toast(st.hard ? 'つぎの ステージから「ふつう」' : 'つぎの ステージから「やさしい」');
   }
 
   function toast(text) {

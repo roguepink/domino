@@ -81,6 +81,7 @@ async def worker(page, queue, results, opts, rough, total, t_start):
         except asyncio.QueueEmpty:
             return
         js = """([id, opts, rough]) => {
+          DOMINO.mode = opts.hard ? 'normal' : 'easy';   // むずかしさ(--hard で ふつう)
           var st = DOMINO.STAGES.filter(function (s) { return s.id === id; })[0];
           var r = DOMINO.Bot.solve(st, opts); delete r.inputs;
           if (rough) { var q = DOMINO.Bot.solve(st, { beam: 4, every: 12, steers: [-1, 0, 1], gold: 0, retry: false }); r.rough = q.clear; r.roughZ = q.z; r.roughWhy = q.why; }
@@ -154,7 +155,7 @@ async def run(a):
         for i in sorted(ids, key=lambda i: -info[i]["rows"]):
             q.put_nowait(i)
         results = {}
-        opts = {"beam": a.beam, "stars": not a.fast}
+        opts = {"beam": a.beam, "stars": not a.fast, "hard": a.hard}
         t0 = time.time()
         await asyncio.gather(*[worker(pg, q, results, opts, a.rough, len(ids), t0) for pg in pages])
         print("", file=sys.stderr)
@@ -215,6 +216,7 @@ def main():
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--beam", type=int, default=32)
     ap.add_argument("--rough", action="store_true")
+    ap.add_argument("--hard", action="store_true", help="むずかしさ「ふつう」で確かめる(書かなければ「やさしい」)")
     ap.add_argument("--fast", action="store_true", help="★2・★3 の確かめを しない")
     ap.add_argument("--json", default="")
     a = ap.parse_args()

@@ -149,6 +149,7 @@ DOMINO.Input = (function () {
 
   return {
     attach: attach, read: read, SPLIT: SPLIT,
+    pressJump: function () { if (enabled) jumpQueued = true; },   // 画面のジャンプボタン(ui.js)から
     enable: function (on) { enabled = on; if (!on) { steerTouch = null; jumpQueued = false; keys = {}; hideMark(); } },
     state: function () { return { steering: !!steerTouch, steerX0: steerTouch && steerTouch.x0, steerX: steerTouch && steerTouch.x, target: steerTouch && steerTouch.tx }; }
   };

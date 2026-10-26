@@ -37,6 +37,7 @@ DOMINO.Game = (function () {
   G.play = function (id) {
     unpauseAudio();
     G.stageId = id; G.stage = stageById(id);
+    DOMINO.mode = DOMINO.Save.data.settings.hard ? 'normal' : 'easy';   // むずかしさ(せってい)
     G.sim = new DOMINO.Sim(G.stage);
     // 前の自分(ゴースト): この面で さっき遊んだときの 走った道。0.1秒ごとの [x, z, y]
     G.ghost = G.ghosts[id] || null; G.path = []; G.ghostBeat = false;
