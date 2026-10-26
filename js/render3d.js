@@ -1733,7 +1733,7 @@ function updateFlash(rdt) {
 // ---------------------------------------------------------------- ゴースト(前の自分)
 function makeGhost() {
   const g = new THREE.Group();
-  const mat = share(new THREE.MeshBasicMaterial({ color: 0xa8e4ff, transparent: true, opacity: 0.38, depthWrite: false }));
+  const mat = share(new THREE.MeshBasicMaterial({ color: 0x8fd8ff, transparent: true, opacity: 0.5, depthWrite: false }));
   const body = new THREE.Mesh(share(new THREE.BoxGeometry(0.56, 0.84, 0.3)), mat); body.position.y = 0.26 + 0.42; g.add(body);
   const face = new THREE.Mesh(share(new THREE.PlaneGeometry(0.5, 0.5)), share(new THREE.MeshBasicMaterial({ map: R.faces.run, transparent: true, opacity: 0.55, depthWrite: false, color: 0x2a5a90 })));
   face.rotation.y = PI; face.position.set(0, 0.26 + 0.84 * 0.62, -0.153); g.add(face);
@@ -1757,7 +1757,7 @@ function updateGhost(dt) {
   const dz = Math.abs(z - sim.p.z), dx = Math.abs(x - sim.p.x);
   const near = dz < 1.2 && dx < 0.9 ? 0.35 : 1;
   Gh.fade = Gh.beat ? Math.max(0, Gh.fade - dt * 1.5) : Math.min(1, Gh.fade + dt * 3);
-  Gh.mat.opacity = 0.38 * near * Gh.fade;
+  Gh.mat.opacity = 0.5 * near * Gh.fade;
   Gh.g.visible = Gh.fade > 0.02;
   Gh.g.position.set(x, y, -z);
   const hx = path[b] - path[a], hz = path[b + 1] - path[a + 1];
@@ -1953,6 +1953,7 @@ function dispose() {
 }
 
 export default { supported, init, setSim, onEvents, render, resize, replay, stopReplay, dispose,
+  _quality(lv) { applyQuality(lv); return Q.level; },
   _trigger() { if (S && S.finale) { S.finale.reset(); S.giantDbg = realClock; S.finale.trigger(); } },
   _finaleZ() { return S && S.finale ? S.finale.FZ : 0; },
   _debug() {
