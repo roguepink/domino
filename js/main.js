@@ -32,7 +32,9 @@ DOMINO.Game = (function () {
     return S[0];
   }
 
+  function unpauseAudio() { if (G.audioPaused && DOMINO.Audio && DOMINO.Audio.pause) DOMINO.Audio.pause(false); G.audioPaused = false; }
   G.play = function (id) {
+    unpauseAudio();
     G.stageId = id; G.stage = stageById(id);
     G.sim = new DOMINO.Sim(G.stage);
     G.resultShown = false; G.playT = 0;
@@ -68,6 +70,7 @@ DOMINO.Game = (function () {
     G.next();
   };
   G.toMenu = function () {
+    unpauseAudio();
     G.state = 'menu'; DOMINO.Input.enable(false);
     if (DOMINO.Audio && DOMINO.Audio.stop) DOMINO.Audio.stop();
     if (DOMINO.UI) DOMINO.UI.showMenu();
@@ -75,13 +78,13 @@ DOMINO.Game = (function () {
   G.pause = function () {
     if (G.state !== 'play') return;
     G.state = 'paused'; DOMINO.Input.enable(false);
-    if (DOMINO.Audio && DOMINO.Audio.pause) DOMINO.Audio.pause(true);
+    if (DOMINO.Audio && DOMINO.Audio.pause) { DOMINO.Audio.pause(true); G.audioPaused = true; }
     if (DOMINO.UI) DOMINO.UI.showPause();
   };
   G.resume = function () {
     if (G.state !== 'paused') return;
     G.state = 'play'; DOMINO.Input.enable(true);
-    if (DOMINO.Audio && DOMINO.Audio.pause) DOMINO.Audio.pause(false);
+    if (DOMINO.Audio && DOMINO.Audio.pause) { DOMINO.Audio.pause(false); G.audioPaused = false; }
     if (DOMINO.UI) DOMINO.UI.showHud(G.sim);
   };
   G.slowmo = function (scale, sec) { G.slowScale = scale; G.slowT = sec; };
@@ -99,7 +102,7 @@ DOMINO.Game = (function () {
       if (s.score > prevBest) sv.best[id] = s.score;
       sv.coins += s.coins + stars * 5;
       sv.fails[id] = 0;
-    } else sv.fails[id] = (sv.fails[id] || 0) + 1;
+    } else if (!s.revived) sv.fails[id] = (sv.fails[id] || 0) + 1;   // お助けのあとの負けは 同じ1回として数える
     DOMINO.Save.write();
     var res = {
       stage: G.stage, clear: clear, stars: stars, prevStars: prevStars, score: s.score, best: Math.max(prevBest, clear ? s.score : 0),
@@ -166,7 +169,7 @@ DOMINO.Game = (function () {
         if (DOMINO.Audio && DOMINO.Audio.onEvents) DOMINO.Audio.onEvents(evs, G.sim);
         if (DOMINO.UI && DOMINO.UI.onEvents) DOMINO.UI.onEvents(evs, G.sim);
       }
-      if (G.render) G.render.render(dt, rdt);
+      try { if (G.render) G.render.render(dt, rdt); } catch (e2) { console.error(e2); }   // 絵の失敗で 音・画面が止まらないように
       if (DOMINO.Audio && DOMINO.Audio.update && G.sim) DOMINO.Audio.update(G.sim, dt, G.state);
       if (DOMINO.UI && DOMINO.UI.update && G.sim) DOMINO.UI.update(G.sim, G.state, rdt);
       var s = G.sim;

@@ -109,7 +109,7 @@ DOMINO.Render2D = (function () {
     ctx.beginPath(); ctx.ellipse(sx(p.x), sy(p.z), C.RADIUS * scale, C.RADIUS * scale * 0.6, 0, 0, 6.283); ctx.fill();
     ctx.fillStyle = p.stun > 0 ? '#ff7' : p.safe > 0 ? '#9ff' : '#fff';
     ctx.strokeStyle = '#1b1430'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(sx(p.x), sy(p.z) - py * scale * 0.5, C.RADIUS * scale * (1 + py * 0.15), 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx(p.x), sy(p.z) - py * scale * 0.5, Math.max(0.05, C.RADIUS * scale * (1 + Math.max(-0.9, py * 0.15))), 0, 6.283); ctx.fill(); ctx.stroke();
   }
 
   function drawDom(x, z, h, a, color, hMul, wMul) {

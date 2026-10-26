@@ -360,7 +360,7 @@ DOMINO.Sim = (function () {
       fr.s += v * dt;
       while (fr.i < d.length && d[fr.i].s <= fr.s) {
         var dom = d[fr.i];
-        if (fr.i > 0 && dom.gap > reachOf(d[fr.i - 1])) { fr.dead = true; fr.s = d[fr.i - 1].s; this._frontDied(fr, fr.i - 1); break; }
+        if (fr.i > 0 && dom.gap > reachOf(d[fr.i - 1])) { fr.dead = true; fr.s = d[fr.i - 1].s; this.brokenGap = true; this._frontDied(fr, fr.i - 1); break; }
         if (dom.st === 0) this._topple(dom);
         fr.i++;
       }
@@ -373,7 +373,7 @@ DOMINO.Sim = (function () {
           if (p.safe > 0) { /* お助けの間は待つ */ }
           else if (p.air && p.jumped && !this._ground(p.x, p.z)) { /* 穴の上をジャンプ中: 着地して橋ドミノがかかるまで 待つ */ }
           else if (gapP <= reachOf(last) && p.y < 1.2) { fr.dead = true; this._fail('caught'); }
-          else if (gapP > reachOf(last) + 0.01) { fr.dead = true; this.brokenAt = last.n; this._fail(this.stock <= 0 ? 'empty' : 'broken'); }
+          else if (gapP > reachOf(last) + 0.01) { fr.dead = true; this.brokenAt = last.n; this.brokenGap = false; this._fail(this.stock <= 0 ? 'empty' : 'broken'); }
         } else if (this.state === 'goal' && p.done) {
           fr.dead = true; this._topGiant();
         }
@@ -471,33 +471,48 @@ DOMINO.Sim = (function () {
     this._emit('fail', { why: why });
   };
 
-  // お助け(1回だけ): つかまった → 波を2.5秒止める / 落ちた → 近くの床に もどす / 切れた → ドミノ +15 で つなぎ直し
+  // お助け(1回だけ): 波を2.5秒止めて、主人公を「その先 2m が走れる」安全な所へ動かす。
+  //   つかまった → 少し前(前が かべなら よこ)/ 落ちた → 穴の向こう / 切れた → すき間に橋ドミノをかけて +15本
+  //   主人公と列の間が あいたときは、次の1枚が 橋ドミノになって つながる
   P.revive = function () {
     if (this.state !== 'fail' || this.revived) return false;
-    var p = this.p, why = this.failReason, d = this.doms;
+    var p = this.p, why = this.failReason, d = this.doms, last = d[d.length - 1];
     this.revived = true; this.state = 'run'; this.failReason = '';
-    p.stun = 0; p.safe = 2.0; p.hitCool = 0; p.air = false; p.vy = 0; p.y = 0;
+    p.stun = 0; p.safe = 2.0; p.hitCool = 0; p.air = false; p.vy = 0; p.y = 0; p.ledge = 0; p.blocked = false;
     this.wave.hold = 2.5;
     for (var f = 0; f < this.fronts.length; f++) this.fronts[f].dead = false;
-    if (why === 'fall') {
-      // 最後のドミノの近くの、立てる床へ
-      var last = d[d.length - 1];
-      p.x = last.x; p.z = last.z + 0.4;
-      if (!this._floorUnder(p.x, p.z)) { p.x = last.x; p.z = last.z; }
-      this.layFrom = { x: last.x, z: last.z };
-    }
-    if (why === 'broken' || why === 'empty') {
+    var spot = null;
+    if (why === 'caught') spot = this._safeSpot(p.x, p.z + 0.6, 2.5);
+    else if (why === 'fall') spot = this._safeSpot(last.x, last.z + 0.5, 9);
+    else {   // broken / empty
       this.stock += 15;
-      var lastD = d[d.length - 1];
-      p.x = lastD.x; p.z = lastD.z + 0.3;
-      this.layFrom = { x: lastD.x, z: lastD.z };
+      if (this.brokenGap && d[this.brokenAt + 1]) {
+        // 列のとちゅうの すき間に 橋ドミノをかける(主人公は そのまま)
+        var a = d[this.brokenAt], b = d[this.brokenAt + 1];
+        a.tall = Math.min(7, b.gap + 0.3); a.rest = restAngle(b.gap, a.tall);
+        this._emit('bridge', { i: a.n });
+      } else spot = this._safeSpot(last.x, last.z + 0.3, 4);
     }
-    if (why === 'caught') {
-      // 波から 少し前へ にがす
-      p.z += 0.6;
-    }
+    if (spot) { p.x = spot.x; p.z = spot.z; p.vx = 0; }
+    var gapNow = Math.hypot(p.x - last.x, p.z - last.z);
+    if (gapNow > C.REACH * 0.8) { p.jumped = true; this.stock += Math.ceil(gapNow); }   // 次の1枚を 橋ドミノにして つなぐ
+    this.brokenGap = false;
     this._emit('revive', { why: why });
     return true;
+  };
+  // (x, z) の近くで、立てて・かべがなく・その先 2m も まっすぐ走れる所をさがす
+  P._safeSpot = function (x, z, dzMax) {
+    var DX = [0, -0.6, 0.6, -1.2, 1.2, -1.8, 1.8, -2.4, 2.4, -3, 3, -3.6, 3.6], hw = this.level.halfW - C.RADIUS;
+    for (var dz = 0; dz <= dzMax; dz += 0.25) {
+      for (var k = 0; k < DX.length; k++) {
+        var px = Math.max(-hw, Math.min(hw, x + DX[k])), pz = z + dz, ok = true;
+        for (var a = 0; a <= 2.0 && ok; a += 0.5) {
+          if (!this._floorUnder(px, pz + a) || this._hitsSolid(px, pz + a) || this.cellAt(px, pz + a) === T.SPIKE) ok = false;
+        }
+        if (ok) return { x: px, z: pz };
+      }
+    }
+    return null;
   };
 
   // 動くじゃま物・仕掛け(stage.obj)。x, x2 は マスの中心の x(-4 〜 +4)、z は 行の番号(スタート側が 0)
