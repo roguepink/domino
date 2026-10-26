@@ -164,7 +164,7 @@ DOMINO.UI = (function () {
     R.tip.innerHTML =
       '<div class="half l"><div class="finger swipe">👆</div><span class="ar al">◀</span><span class="ar arr">▶</span><p>左を なぞって<br>左右に うごく</p></div>' +
       '<div class="half r"><div class="finger tap">👆</div><div class="ripple"></div><p>右を タップで<br>ジャンプ</p></div>' +
-      '<div class="avoid">🪨 岩・かべは よけよう</div>';
+      '<div class="avoid"><span>🪨 岩・かべは よけよう</span></div>';
     root.appendChild(R.tip);
 
     // それぞれの画面

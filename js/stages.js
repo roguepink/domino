@@ -14,7 +14,7 @@ var DOMINO = window.DOMINO = window.DOMINO || {};
 DOMINO.STAGES = [
   // ---- 1  はじめの いっぽ(49 m)
   { id: 1, name: "はじめの いっぽ", world: 1, stock: 130,
-    wave: { delay: 1.4, v0: 4.3, acc: 0.08, max: 6.2, far: 7.0, closer: 4.5, catchup: 0.3 },
+    wave: { delay: 1.4, v0: 4.3, acc: 0.08, max: 6.2, far: 7.0, closer: 5.2, catchup: 0.3 },
     nearGoal: 1,
     tip: "走ると うしろに ドミノが ならぶよ。たおれる 波に つかまらないように ゴールまで にげよう!",
     map: [
@@ -74,7 +74,7 @@ DOMINO.STAGES = [
   },
   // ---- 2  はこで ふやそう(61 m)
   { id: 2, name: "はこで ふやそう", world: 1, stock: 60,
-    wave: { delay: 1.4, v0: 4.3, acc: 0.1, max: 6.4, far: 7.0, closer: 4.0, catchup: 0.3 },
+    wave: { delay: 1.4, v0: 4.3, acc: 0.1, max: 6.4, far: 7.0, closer: 5.0, catchup: 0.3 },
     nearGoal: 2,
     tip: "はこを とると ドミノが ふえるよ。ドミノが なくなると 負け!",
     map: [
@@ -146,7 +146,7 @@ DOMINO.STAGES = [
   },
   // ---- 3  かべを よけて(62 m)
   { id: 3, name: "かべを よけて", world: 1, stock: 130,
-    wave: { delay: 1.3, v0: 4.4, acc: 0.1, max: 6.6, far: 6.5, closer: 3.5, catchup: 0.35 },
+    wave: { delay: 1.3, v0: 4.4, acc: 0.1, max: 6.6, far: 6.5, closer: 4.4, catchup: 0.35 },
     nearGoal: 2,
     tip: "かべに ぶつかると 止まっちゃう。はやめに よけよう",
     map: [
@@ -4120,7 +4120,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 44  ふりこ ハンマー(52 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 44, name: "ふりこ ハンマー", world: 5, stock: 115,
+  { id: 44, name: "ふりこ ハンマー", world: 5, stock: 105,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     nearGoal: 2,
     tip: "ハンマーは ゆれるよ。よく 見て 走ろう",
@@ -4189,7 +4189,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 45  森の こうじょう(66 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 45, name: "森の こうじょう", world: 5, stock: 135,
+  { id: 45, name: "森の こうじょう", world: 5, stock: 120,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     map: [
       '.........',   // ゴール
@@ -4271,7 +4271,7 @@ DOMINO.STAGES = [
     ]
   },
   // ---- 46  あぶない そらの さんぽ(80 m) まっすぐ走ると 46.0 m で 追いつかれる
-  { id: 46, name: "あぶない そらの さんぽ", world: 5, stock: 140,
+  { id: 46, name: "あぶない そらの さんぽ", world: 5, stock: 125,
     wave: { delay: 1.08, v0: 5.0, acc: 0.288, max: 7.2 },
     map: [
       '.........',   // ゴール

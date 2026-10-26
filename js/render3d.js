@@ -1725,7 +1725,7 @@ function makeFlash() {
 function updateFlash(rdt) {
   const h = 2 * 0.5 * Math.tan(camera.fov * PI / 360), w = h * camera.aspect;
   const danger = sim && sim.state === 'run' && sim.wave.started && sim.danger < DOM.CONFIG.NEAR + 0.4;
-  FL.red = Math.max(danger ? 0.28 + 0.12 * Math.sin(realClock * 9) : 0, FL.red - rdt * 1.6);
+  FL.red = Math.max(danger ? 0.16 + 0.08 * Math.sin(realClock * 9) : 0, FL.red - rdt * 1.6);
   FL.white = Math.max(0, FL.white - rdt * 3.2);
   for (const [m, a] of [[R.vig, FL.red], [R.white, FL.white]]) { m.visible = a > 0.01; m.material.opacity = Math.min(1, a); m.scale.set(w * 1.02, h * 1.02, 1); }
 }
