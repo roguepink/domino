@@ -126,14 +126,16 @@ DOMINO.Input = (function () {
     if (steerTouch) {
       if (s) {
         var p = s.p, C = DOMINO.CONFIG;
-        // 動けないとき(かべ・止まっている)は 目標を 主人公の近くへ寄せる
-        var SLIP = 0.9;
-        if (steerTouch.tx - p.x > SLIP) steerTouch.tx = p.x + SLIP;
-        if (steerTouch.tx - p.x < -SLIP) steerTouch.tx = p.x - SLIP;
+        // 目標は 主人公から 4m まで(はなれすぎない)
+        var LEAD = 4, gap = steerTouch.tx - p.x;
+        if (gap > LEAD) steerTouch.tx = p.x + LEAD; else if (gap < -LEAD) steerTouch.tx = p.x - LEAD;
+        // かべで 横に動けないときだけ、目標を 主人公の近くへ少しずつ寄せる(はなれたまま 急に飛ばない)
+        if (p.stun <= 0 && Math.abs(p.vx) < 0.8 && Math.abs(gap) > 0.5) steerTouch.bt = (steerTouch.bt || 0) + C.DT; else steerTouch.bt = 0;
+        if (steerTouch.bt > 0.12) steerTouch.tx -= (gap > 0 ? 1 : -1) * 5 * C.DT;
         // 先読み(今の速さで 少し先の位置)で 行きすぎを ふせぐ
-        var err = steerTouch.tx - (p.x + p.vx * 0.075);
+        var err = steerTouch.tx - (p.x + p.vx * 0.06);
         if (Math.abs(err) < 0.02) err = 0;
-        steer = err * 8 / C.SIDE;
+        steer = err * 11 / C.SIDE;
         placeMark(steerTouch.x, steerTouch.y, -(steerTouch.tx - p.x) * pxPerM());
       } else {
         steer = (steerTouch.x - steerTouch.x0) / 46;   // sim がないとき(念のため): 昔ながらの スティック

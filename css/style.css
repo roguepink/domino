@@ -173,6 +173,9 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 .node .lk { font-size: 22px; opacity: .8; }
 .node .nst { position: absolute; left: -10px; right: -10px; bottom: -24px; font-size: 16px; letter-spacing: 1px; color: var(--gold); text-align: center;
   text-shadow: 1px 1px 0 var(--ink), -1px 1px 0 var(--ink), 1px -1px 0 var(--ink), -1px -1px 0 var(--ink); }
+.node.done .face { background: var(--c); color: #fff; }
+.node.done .face .num { text-shadow: var(--out); }
+.node.done .face::before, .node.done .face::after { background: #fff; }
 .node.lock .face { background: #cfcfda; color: #777; box-shadow: 0 4px 0 #555; border-color: #555; }
 .node.lock .face::before, .node.lock .face::after { background: #999; }
 .node.none .face { background: rgba(255,255,255,.35); border-style: dashed; border-color: rgba(42,26,74,.45); box-shadow: none; color: rgba(42,26,74,.4); }
@@ -271,15 +274,15 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 @keyframes beat { 0% { opacity: 0; } 12% { opacity: 1; } 24% { opacity: .2; } 36% { opacity: .8; } 100% { opacity: 0; } }
 
 /* 短い文字(ギリギリ! +20 ×2 …) */
-#pop { position: absolute; z-index: 5; left: 0; right: 0; top: 27%; text-align: center; font-size: 44px; font-weight: 900; color: #fff; text-shadow: var(--out);
+#pop { position: absolute; z-index: 5; left: 0; right: 0; top: calc(var(--safe-t) + 112px); text-align: center; font-size: 38px; font-weight: 900; color: #fff; text-shadow: var(--out);
   opacity: 0; pointer-events: none; white-space: nowrap; }
 #pop.go { animation: popIn .95s ease-out forwards; }
-#pop.near { color: #ffe500; font-size: 52px; }
-#pop.good { color: #7dff8a; } #pop.bad { color: #ff6b7a; font-size: 34px; } #pop.gold { color: #ffd700; font-size: 38px; }
-#pop.boom { color: #fff; font-size: 60px; } #pop.info { color: #fff; font-size: 32px; }
+#pop.near { color: #ffe500; font-size: 48px; }
+#pop.good { color: #7dff8a; font-size: 42px; } #pop.bad { color: #ff6b7a; font-size: 30px; } #pop.gold { color: #ffd700; font-size: 32px; }
+#pop.boom { color: #fff; font-size: 52px; } #pop.info { color: #fff; font-size: 28px; }
 @keyframes popIn { 0% { opacity: 0; transform: scale(.4) rotate(-8deg); } 14% { opacity: 1; transform: scale(1.18) rotate(3deg); } 24% { transform: scale(1) rotate(0); }
   75% { opacity: 1; transform: translateY(-6px); } 100% { opacity: 0; transform: translateY(-26px); } }
-#combo { position: absolute; z-index: 5; right: calc(12px + var(--safe-r)); top: calc(var(--safe-t) + 104px); text-align: right; color: #fff; opacity: 0; pointer-events: none; }
+#combo { position: absolute; z-index: 5; right: calc(12px + var(--safe-r)); top: calc(var(--safe-t) + 170px); text-align: right; color: #fff; opacity: 0; pointer-events: none; }
 #combo b { display: block; font-size: 44px; line-height: 1; text-shadow: var(--out); }
 #combo span { font-size: 16px; text-shadow: var(--out); }
 #combo.big b { color: #ffe500; font-size: 52px; } #combo.mega b { color: #ff7ad9; font-size: 60px; }
@@ -303,7 +306,9 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 #tip .finger.tap { animation: tapF2 1s ease-in-out infinite; }
 @keyframes swipe { 0%, 100% { transform: translateX(-46px); } 50% { transform: translateX(46px); } }
 @keyframes tapF2 { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(10px) scale(.9); } 45% { transform: translateY(0); } }
-#tip .arrows { position: absolute; top: calc(62% - 40px); left: 0; right: 0; text-align: center; color: #fff; font-size: 26px; letter-spacing: 70px; text-shadow: var(--out); text-indent: 70px; }
+#tip .ar { position: absolute; top: calc(62% + 8px); color: #fff; font-size: 24px; line-height: 1; text-shadow: var(--out); animation: arw 1.6s ease-in-out infinite; }
+#tip .al { left: 50%; margin-left: -92px; } #tip .arr { left: 50%; margin-left: 70px; animation-delay: -.8s; }
+@keyframes arw { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 #tip .ripple { position: absolute; top: calc(62% - 12px); left: 50%; width: 60px; height: 60px; margin-left: -38px; border-radius: 50%; border: 4px solid #fff; opacity: 0; animation: ripple 1s ease-out infinite; }
 @keyframes ripple { 0%, 25% { opacity: 0; transform: scale(.3); } 35% { opacity: .9; } 100% { opacity: 0; transform: scale(1.5); } }
 #tip p { position: absolute; top: calc(62% + 70px); left: 4px; right: 4px; margin: 0; text-align: center; color: #fff; font-size: 19px; line-height: 1.4; text-shadow: var(--out); }
@@ -318,6 +323,7 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 
 /* ---------- ポーズ・結果のカード ---------- */
 .s-pause, .s-result { background: rgba(20,12,42,.58); display: flex; align-items: center; justify-content: center; padding: calc(var(--safe-t) + 12px) 14px calc(var(--safe-b) + 12px); }
+.card, .icard, .whead, .lead, .danger-zone { word-break: keep-all; overflow-wrap: anywhere; }
 .card { width: 100%; max-width: 370px; max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--paper); border: 4px solid var(--ink); border-radius: 28px;
   padding: 18px 18px 16px; text-align: center; box-shadow: 0 8px 0 var(--ink); display: flex; flex-direction: column; align-items: center; gap: 10px;
   animation: cardIn .22s cubic-bezier(.2, 1.4, .4, 1); }
@@ -331,6 +337,9 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 .tg.on .sw i { transform: translateX(18px); }
 .tg .tv { font-size: 13px; min-width: 2.2em; }
 .toggles .tg .tv { display: none; }
+.toggles .tg { padding: 8px 10px; gap: 6px; font-size: 15px; }
+.tg .tn { white-space: nowrap; }
+.s-pause, .s-result, .s-intro, .s-replay { z-index: 7; }
 
 .rlabel { font-size: 14px; opacity: .7; }
 .rtitle { font-size: 40px !important; line-height: 1.1; }
@@ -351,7 +360,8 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 .rstat { font-size: 14px; opacity: .8; }
 .rskin { font-size: 15px; background: #fff3b0; border: 2.5px solid var(--ink); border-radius: 14px; padding: 6px 10px; }
 .rsoon { font-size: 14px; opacity: .8; }
-.rrow { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.rrow { display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 320px; }
+.rrow .btn { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; }
 .card .btn.next { width: 100%; max-width: 300px; font-size: 30px; padding: 14px 20px; }
 .fprog { position: relative; width: 100%; max-width: 300px; height: 40px; margin-top: 4px; }
 .ftrack { position: absolute; left: 0; right: 30px; top: 50%; height: 16px; margin-top: -8px; border-radius: 9px; background: #fff; border: 2.5px solid var(--ink); }
@@ -363,7 +373,7 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 .fhint { font-size: 14px; background: #fff; border: 2px dashed rgba(42,26,74,.4); border-radius: 12px; padding: 6px 10px; line-height: 1.5; }
 .btn.help { flex-direction: column; gap: 0; background: #bfe9ff; width: 100%; max-width: 280px; }
 .btn.help small { font-size: 12px; opacity: .85; }
-.s-result .btn.mid.ghost { width: 100%; max-width: 280px; }
+.s-result .card > .btn.mid.ghost { width: 100%; max-width: 280px; }
 
 /* リプレイ中 */
 .s-replay { background: none; }
@@ -459,7 +469,8 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
   .s-result.clear .card > * { grid-column: 1; }
   .s-result.clear .card .btn.next, .s-result.clear .card .rrow, .s-result.clear .card .rsoon { grid-column: 2; }
   .s-result.clear .card .btn.next { grid-row: 2 / span 2; }
-  .s-result.clear .card .rrow { grid-row: 4 / span 2; }
+  .s-result.clear .card .rrow { grid-row: 4 / span 2; flex-direction: column; max-width: 260px; }
+  .s-result.clear .card .rrow .btn { flex: 0 0 auto; width: 100%; }
   .s-result.clear .card .rtitle { font-size: 34px !important; }
   .s-result.fail .card { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; align-items: center; justify-items: center; }
   .s-result.fail .card > * { grid-column: 1; }
@@ -467,6 +478,6 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
   .s-result.fail .card .btn.huge { grid-row: 1 / span 3; }
   .slot .big { font-size: 40px; } .slot.s1 .big { font-size: 48px; margin-bottom: 4px; }
   .rscore { font-size: 30px; }
-  #pop { top: 22%; }
+  #pop { top: calc(var(--safe-t) + 92px); }
   #combo { top: calc(var(--safe-t) + 92px); }
 }

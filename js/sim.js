@@ -430,11 +430,11 @@ DOMINO.Sim = (function () {
     if (this.state === 'run' && p.z >= L.goalZ + 0.5) {
       this.state = 'goal';
       p.stun = 0;
-      this.giant = { x: 0, z: L.goalZ + 7.5, h: 3.4, t0: -1 };
+      this.giant = { x: 0, z: L.goalZ + 6.0, h: 3.4, t0: -1 };
       this.score += 1000 + this.stock * 20;
       this._emit('goal');
     }
-    if (this.giant && this.giant.t0 >= 0 && this.state === 'goal' && this.t - this.giant.t0 > 1.6) {
+    if (this.giant && this.giant.t0 >= 0 && this.state === 'goal' && this.t - this.giant.t0 > 1.3) {
       this.state = 'clear'; this.endT = 0;
       this._emit('clear');
     }

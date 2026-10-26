@@ -157,7 +157,7 @@ DOMINO.Game = (function () {
           acc -= C.DT; steps++;
         }
         if (G.state === 'play') G.playT += dt;
-        if (G.state === 'play' && (G.sim.state === 'fail' && G.sim.endT > 0.9 || G.sim.state === 'clear' && G.sim.endT > 0.8)) {
+        if (G.state === 'play' && (G.sim.state === 'fail' && G.sim.endT > 0.9 || G.sim.state === 'clear' && G.sim.endT > 0.5)) {
           G.state = 'result'; finish();
         }
       }

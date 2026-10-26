@@ -124,5 +124,5 @@ DOMINO.Render2D = (function () {
     ctx.restore();
   }
 
-  return { init: init, setSim: setSim, onEvents: onEvents, render: render, resize: resize, replay: function () {}, dispose: function () { if (cv) cv.remove(); } };
+  return { init: init, setSim: setSim, onEvents: onEvents, render: render, resize: resize, replay: function (onDone) { if (onDone) setTimeout(onDone, 0); }, dispose: function () { if (cv) cv.remove(); } };
 })();

@@ -109,7 +109,7 @@ DOMINO.UI = (function () {
     R.plus = h('div', '', ''); R.plus.id = 'plus'; root.appendChild(R.plus);
     R.tip = h('div', '', ''); R.tip.id = 'tip';
     R.tip.innerHTML =
-      '<div class="half l"><div class="finger swipe">👆</div><div class="arrows">◀ ▶</div><p>左を なぞって<br>左右に うごく</p></div>' +
+      '<div class="half l"><div class="finger swipe">👆</div><span class="ar al">◀</span><span class="ar arr">▶</span><p>左を なぞって<br>左右に うごく</p></div>' +
       '<div class="half r"><div class="finger tap">👆</div><div class="ripple"></div><p>右を タップで<br>ジャンプ</p></div>';
     root.appendChild(R.tip);
 
@@ -151,13 +151,13 @@ DOMINO.UI = (function () {
   }
 
   // ---------- ステージ選び ----------
-  var NODE_X = [50, 72, 80, 64, 40, 22, 28, 50, 72, 50];
+  var NODE_X = [46, 72, 78, 56, 30, 20, 40, 64, 78, 50];
   function buildStages() {
     var W = Math.min(root.clientWidth || window.innerWidth, 560);
     var unlocked = DOMINO.Save.unlocked(), target = playTarget();
     var html = '<div class="bar"><button class="btn back" data-act="menu">◀ もどる</button><b>ステージ</b>' +
       '<span class="bstars"><span class="st">★</span> ' + DOMINO.Save.totalStars() + '</span></div><div class="scroll" id="stScroll"><div class="map" style="max-width:' + W + 'px">';
-    var STEP = 84, TOP = 172;
+    var STEP = 100, TOP = 172;
     for (var w = 0; w < DOMINO.WORLDS.length; w++) {
       var WD = DOMINO.WORLDS[w], wsum = 0, nodes = '', pts = [];
       for (var n = 0; n < 10; n++) {
@@ -169,7 +169,7 @@ DOMINO.UI = (function () {
         var inner;
         if (!st) { cls += ' none'; inner = '<span class="num">' + (n + 1) + '</span>'; }
         else if (id > unlocked) { cls += ' lock'; inner = '<span class="lk">🔒</span>'; }
-        else { inner = '<span class="num">' + (n + 1) + '</span>'; if (id === target) cls += ' now'; if (sv().skipped[id] && !stars) cls += ' skipped'; }
+        else { inner = '<span class="num">' + (n + 1) + '</span>'; if (id === target) cls += ' now'; if (stars) cls += ' done'; if (sv().skipped[id] && !stars) cls += ' skipped'; }
         nodes += '<button class="' + cls + '" style="left:' + Math.round(x) + 'px;top:' + Math.round(y) + 'px;--c:' + WD.accent + '" data-act="stage" data-id="' + id + '"' + (st && id <= unlocked ? '' : ' disabled') + '>' +
           '<span class="face">' + inner + '</span>' +
           (st && id <= unlocked ? '<span class="nst">' + starStr(stars) + '</span>' : '') +
@@ -337,6 +337,7 @@ DOMINO.UI = (function () {
   // ---------- ポーズ ----------
   function showPause() {
     clearTimers();
+    R.tip.className = ''; R.edge.style.opacity = 0;
     var st = sv().settings;
     S.pause.innerHTML =
       '<div class="card">' +

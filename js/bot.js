@@ -62,7 +62,31 @@ DOMINO.Bot = (function () {
     // スイッチ(k p q)のマスがあるか・爆弾の位置
     var bombs = [];
     for (var b = 0; b < sim.specials.length; b++) if (sim.specials[b].t === 'bomb') bombs.push(sim.specials[b]);
-    var info = { stage: st, hz: hz, rows: rows, bombs: bombs };
+    var sws = [];                    // スイッチのマス {x, z, g}
+    for (var r2 = 0; r2 < rows; r2++) for (var c2 = 0; c2 < L.cols; c2++) {
+      var i2 = r2 * L.cols + c2;
+      if (L.cell[i2] === T.SWITCH) sws.push({ x: c2 - L.cols / 2 + 0.5, z: r2 + 0.5, g: L.group[i2] });
+    }
+    // 「ふさがった行」(かべ・門・こわれるかべだけで 通れない行)。その門・かべを開ける スイッチ・爆弾は「ぜったい要る」
+    var needG = 0, closedW = [];
+    for (var r3 = 0; r3 < rows; r3++) {
+      var open = 0, gs = 0, ws = [];
+      for (var c3 = 0; c3 < L.cols; c3++) {
+        var i3 = r3 * L.cols + c3, t3 = L.cell[i3];
+        if (t3 === T.GATE) gs |= (1 << L.group[i3]);
+        else if (t3 === T.WALL) { if (L.weak[i3]) ws.push({ x: c3 - L.cols / 2 + 0.5, z: r3 + 0.5 }); }
+        else open++;
+      }
+      if (!open) { needG |= gs; closedW = closedW.concat(ws); }
+    }
+    for (var b2 = 0; b2 < bombs.length; b2++) {
+      bombs[b2].need = false;
+      for (var w2 = 0; w2 < closedW.length; w2++) {
+        var ddx = closedW[w2].x - bombs[b2].x, ddz = closedW[w2].z - bombs[b2].z;
+        if (ddx * ddx + ddz * ddz < 2.8 * 2.8) bombs[b2].need = true;
+      }
+    }
+    var info = { stage: st, hz: hz, rows: rows, bombs: bombs, sws: sws, needG: needG };
     prepCache.push(info); if (prepCache.length > 8) prepCache.shift();
     return info;
   }
@@ -87,8 +111,28 @@ DOMINO.Bot = (function () {
     if (stock < 8) sc -= (8 - stock) * 15;
     if (stock <= 0) sc -= 2000;
     sc += s.stars * 150 * gw;
-    sc += node.swc * 90;            // スイッチの上に ドミノを置けた(門が開く)
-    sc += node.bmc * 90;            // 爆弾の近くに ドミノを置けた(かべがこわれる)
+    sc += node.swc * 500;           // スイッチの上に ドミノを置けた(門が開く)
+    sc += node.bmc * 500;           // 爆弾の近くに ドミノを置けた(かべがこわれる)
+    // まだの スイッチ・爆弾へ 向かう
+    var best = 0;
+    for (var q = 0; q < info.sws.length; q++) {
+      var w = info.sws[q];
+      if ((node.swm & (1 << w.g)) || s.gateOpen[w.g]) continue;
+      var dz2 = w.z - p.z; if (dz2 < -0.3 || dz2 > 10) continue;
+      var rc = Math.max(0, dz2) / s.cfg.run * 5.5 + 0.7, dx2 = Math.abs(w.x - p.x);
+      if (dx2 > rc || !clearLine(s, p.x, p.z, w.x, w.z)) continue;
+      best = Math.max(best, ((info.needG & (1 << w.g)) ? 300 : 30) * (1 - dx2 / (rc + 0.5)));
+    }
+    sc += best; best = 0;
+    for (var bq = 0; bq < info.bombs.length; bq++) {
+      var bm = info.bombs[bq];
+      if ((node.bmm & (1 << bq)) || bm.done) continue;
+      var dz3 = bm.z - p.z; if (dz3 < -0.3 || dz3 > 10) continue;
+      var rc3 = Math.max(0, dz3) / s.cfg.run * 5.5 + 1.5, dx3 = Math.abs(bm.x - p.x);
+      if (dx3 > rc3 || !clearLine(s, p.x, p.z, bm.x, bm.z)) continue;
+      best = Math.max(best, (bm.need ? 300 : 30) * (1 - dx3 / (rc3 + 0.5)));
+    }
+    sc += best;
     // 先にある 金のドミノ・箱へ 向かっているほど 少し良い(取れそうな所だけ)
     var its = s.items;
     for (var i = 0; i < its.length; i++) {
@@ -97,7 +141,7 @@ DOMINO.Bot = (function () {
       var dz = it.z - p.z;
       if (dz < 0.3 || dz > 9) continue;
       var reach = dz / s.cfg.run * 5.5 + 0.6, dx = Math.abs(it.x - p.x);
-      if (dx > reach) continue;
+      if (dx > reach || !clearLine(s, p.x, p.z, it.x, it.z)) continue;
       var val = it.t === 'star' ? 150 * gw : (it.t === 'coin' ? 3 : it.n * (stock < need ? 1.0 : 0.15));
       sc += val * 0.45 * (1 - dx / (reach + 0.5)) * (1 - dz / 12);
     }
@@ -109,9 +153,30 @@ DOMINO.Bot = (function () {
       else if (s.cellAt(lx, lz) === DOMINO.Level.T.SINK && s.sunk(lz, s.t + tl)) sc -= 300;
     }
     if (p.stun > 0) sc -= 60;
+    // 前が かべ: いちばん近い すきまへ(止まって 横にならべ続けるのを ふせぐ)
+    if (p.blocked) sc -= 40;
+    var r0 = Math.floor(p.z), cols = s.level.cols, half = cols / 2;
+    for (var k = 1; k <= 4; k++) {
+      var zz = r0 + k + 0.5;
+      if (!s._solid(p.x, zz)) continue;
+      var bestD = 99;
+      for (var c = 0; c < cols; c++) {
+        var cx = c - half + 0.5;
+        if (!s._solid(cx, zz)) { var dd = Math.abs(cx - p.x); if (dd < bestD) bestD = dd; }
+      }
+      sc -= Math.min(bestD, 9) * (6 - k) * 2.5;
+      break;
+    }
     if (node.cut) sc -= 3000;
     sc -= node.jumps * 0.3;
     return sc;
+  }
+
+  // 2点の間に かべが ないか(だいたい)
+  function clearLine(s, x0, z0, x1, z1) {
+    var n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(z1 - z0)) / 0.5);
+    for (var i = 1; i <= n; i++) { var u = i / n; if (s._solid(x0 + (x1 - x0) * u, z0 + (z1 - z0) * u)) return false; }
+    return true;
   }
 
   // 新しく置いたドミノが スイッチ・爆弾に届いたかを数える(親から引きつぐ)
@@ -121,11 +186,11 @@ DOMINO.Bot = (function () {
       var dm = d[i];
       // とぎれた(届かない すき間ができた)流れは もうだめ
       if (i > 0 && i < d.length && dm.gap > (d[i - 1].tall ? Math.max(C.REACH, d[i - 1].tall) : C.REACH)) node.cut = 1;
-      if (dm.sw && !(node.swm & (1 << dm.sw))) { node.swm |= (1 << dm.sw); if (!node.sim.gateOpen[dm.sw]) node.swc++; }
+      if (dm.sw && !(node.swm & (1 << dm.sw))) { node.swm |= (1 << dm.sw); if (!node.sim.gateOpen[dm.sw]) node.swc += (info.needG & (1 << dm.sw)) ? 1 : 0.12; }
       for (var b = 0; b < info.bombs.length; b++) {
         if (node.bmm & (1 << b)) continue;
         var bb = info.bombs[b], dx = bb.x - dm.x, dz = bb.z - dm.z;
-        if (dx * dx + dz * dz < 1.5 * 1.5) { node.bmm |= (1 << b); node.bmc++; }
+        if (dx * dx + dz * dz < 1.5 * 1.5) { node.bmm |= (1 << b); node.bmc += bb.need ? 1 : 0.12; }
       }
     }
     node.nd = d.length;
@@ -237,11 +302,13 @@ DOMINO.Bot = (function () {
     var start = fromSim ? fastClone(fromSim) : new DOMINO.Sim(stage);
     var info = prep(start);
     var r = search(start, o, info), tries = 1;
-    if (r.fail && o.retry) {
-      var o2 = defaults(opts); o2.beam = o.beam * 4;
+    // 失敗したら: 幅を広げて もう1回 → それでもだめなら 金のドミノを あきらめて もう1回
+    var plans = o.retry ? [{ beam: o.beam * 4, gold: o.gold }, { beam: o.beam * 4, gold: 0 }] : [];
+    for (var pi = 0; pi < plans.length && r.fail; pi++) {
+      var o2 = defaults(opts); o2.beam = plans[pi].beam; o2.gold = plans[pi].gold;
       var r2 = search(fromSim ? fastClone(fromSim) : new DOMINO.Sim(stage), o2, info);
-      r2.nodes += r.nodes; r2.ms += r.ms; tries = 2;
-      if (!r2.fail || (r2.sim && r.sim && r2.sim.p.z > r.sim.p.z)) r = r2;
+      r2.nodes += r.nodes; r2.ms += r.ms; tries++;
+      if (!r2.fail || (r2.sim && r.sim && r2.sim.p.z > r.sim.p.z)) r = r2; else { r.nodes = r2.nodes; r.ms = r2.ms; }
     }
     var path = pathOf(r.node), s = r.sim;
     // 負けた流れは 最後の一歩を もう一度すすめて 理由を出す
