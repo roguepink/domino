@@ -635,3 +635,12 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 .tg.hard.on .sw { background: #ff9a3c; }
 .list .tg .tv { min-width: 4em; text-align: right; }
 .hnote { margin: -2px 4px 0; font-size: 12px; opacity: .7; text-align: left; }
+
+/* タイトルの あそびかた(2026-10-28) */
+.s-title .howto { margin: 6px auto 10px; max-width: 340px; width: calc(100% - 32px); background: rgba(255,255,255,.86); border: 3px solid #1b1430; border-radius: 16px; padding: 8px 12px; color: #1b1430; text-align: left; box-shadow: 0 4px 0 rgba(27,20,48,.25); }
+.s-title .howto .hh { margin: 0 0 4px; font-weight: 900; font-size: 15px; text-align: center; color: #ff4f8b; }
+.s-title .howto ul { margin: 0; padding: 0; list-style: none; }
+.s-title .howto li { display: flex; gap: 6px; font-size: 12.5px; font-weight: 700; line-height: 1.45; margin: 2px 0; word-break: keep-all; overflow-wrap: anywhere; }
+.s-title .howto li span { flex: none; width: 1.3em; text-align: center; }
+@media (max-height: 620px) { .s-title .howto { padding: 5px 10px; margin: 2px auto 6px; } .s-title .howto li { font-size: 11.5px; line-height: 1.35; } .s-title .howto .hh { font-size: 13px; } }
+@media (max-height: 620px) { .s-title .hero-wrap { display: none; } .s-title .logo { transform: scale(.72); transform-origin: 50% 0; margin-bottom: -48px; } }

@@ -199,6 +199,12 @@ DOMINO.UI = (function () {
       '<div class="tbody">' +
         '<div class="logo"><div class="lrow">' + l1 + '</div><div class="lrow">' + l2 + '</div></div>' +
         '<div class="hero-wrap">' + domikun('run') + '<span class="sweat">💦</span></div>' +
+        // あそびかた(2026-10-28 ノブさん「タイトルに簡単な説明を。何のゲームか分からないから」)
+        '<div class="howto"><p class="hh">走ると うしろに ドミノが ならぶ!</p><ul>' +
+          '<li><span>🏃</span>うしろから 倒れてくる ドミノに つかまらずに ゴールへ</li>' +
+          '<li><span>👆</span>左を なぞって 左右に動く。右の ボタンで ジャンプ</li>' +
+          '<li><span>〰️</span>ジグザグに走ると 波が おくれる。でも ドミノを たくさん使う</li>' +
+        '</ul></div>' +
         '<div class="tctl"><button class="btn big play" data-act="play"><span class="t">▶ あそぶ</span><span class="sub" id="tPlaySub"></span></button>' +
         '<div class="trow">' +
           '<button class="btn round" data-act="stages"><span class="ic">🗺️</span><span>ステージ</span></button>' +
