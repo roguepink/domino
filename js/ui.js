@@ -66,7 +66,7 @@ DOMINO.UI = (function () {
     'broken.far': '遠回りしすぎると ドミノが 足りなくなる。まっすぐ 走るのも 大事',
     'empty': '箱や「+」の門で ドミノを ふやそう',
     'broken': 'ドミノの間が はなれすぎると、波が とどかないよ',
-    'fall': '穴は 右がわを タップして ジャンプ!'
+    'fall': '穴は ジャンプボタンか、指を 上に はらって ジャンプ!'
   };
   function hintFor(reason, hint) { return HINTS[reason + '.' + hint] || HINTS[reason] || ''; }
   var REVIVE = { caught: '波を 少し 止める', broken: 'ドミノ +15本で つなぎ直す', empty: 'ドミノ +15本で つなぎ直す', fall: '近くの床に もどる' };
@@ -162,8 +162,8 @@ DOMINO.UI = (function () {
     R.plus = h('div', '', ''); R.plus.id = 'plus'; root.appendChild(R.plus);
     R.tip = h('div', '', ''); R.tip.id = 'tip';
     R.tip.innerHTML =
-      '<div class="half l"><div class="finger swipe">👆</div><span class="ar al">◀</span><span class="ar arr">▶</span><p>左を なぞって<br>左右に うごく</p></div>' +
-      '<div class="half r"><p>右の ボタンで<br>ジャンプ<small>(穴は 4の島から)</small></p><div class="finger tap">👇</div><div class="ripple"></div></div>' +
+      '<div class="half l"><div class="finger swipe">👆</div><span class="ar al">◀</span><span class="ar arr">▶</span><p>どこでも なぞって<br>左右に うごく</p></div>' +
+      '<div class="half r"><p>ボタンで ジャンプ<small>上に はらっても OK</small></p><div class="finger tap">👇</div><div class="ripple"></div></div>' +
       '<div class="avoid"><span>🪨 岩・かべは よけよう</span></div>';
     root.appendChild(R.tip);
 
@@ -171,7 +171,7 @@ DOMINO.UI = (function () {
     S.title = scr('title'); S.stages = scr('stages'); S.intro = scr('intro'); S.pause = scr('pause');
     S.replay = scr('replay'); S.result = scr('result'); S.skins = scr('skins'); S.settings = scr('settings'); S.hud = scr('hudscr'); S.ending = scr('ending');
     R.toast = h('div', '', ''); R.toast.id = 'toast'; root.appendChild(R.toast);
-    // 見えるジャンプボタン(右がわの どこをタップしても ジャンプは そのまま)
+    // 見えるジャンプボタン(画面の ほかの所は どこでも なぞって 左右。2026-11-17)
     R.jump = h('button', '', '<span class="ar">↑</span><span class="jt">ジャンプ</span>'); R.jump.id = 'jumpBtn'; R.jump.type = 'button'; R.jump.setAttribute('aria-label', 'ジャンプ');
     root.appendChild(R.jump);
     var jdown = function (e) {
@@ -202,7 +202,7 @@ DOMINO.UI = (function () {
         // あそびかた(2026-10-28 ノブさん「タイトルに簡単な説明を。何のゲームか分からないから」)
         '<div class="howto"><p class="hh">走ると うしろに ドミノが ならぶ!</p><ul>' +
           '<li><span>🏃</span>うしろから 倒れてくる ドミノに つかまらずに ゴールへ</li>' +
-          '<li><span>👆</span>左を なぞって 左右に動く。右の ボタンで ジャンプ</li>' +
+          '<li><span>👆</span>画面を なぞって 左右に動く。ボタンで ジャンプ</li>' +
           '<li><span>〰️</span>ジグザグに走ると 波が おくれる。でも ドミノを たくさん使う</li>' +
         '</ul></div>' +
         '<div class="tctl"><button class="btn big play" data-act="play"><span class="t">▶ あそぶ</span><span class="sub" id="tPlaySub"></span></button>' +

@@ -7,7 +7,7 @@
   機種: iPhone SE(320x568)/ 大きい iPhone(430x932)/ 横向き(844x390)/ LINE の中(390x844 + UA に Line/)
   1. 左がわを 右へ 90px なぞる → DOMINO.Game.sim.p.x が 右(+)へ動くか
   2. 左がわを 左へ なぞる → 左(-)へ動くか
-  3. 右がわを タップ → ジャンプするか(p.y が上がるか)
+  3. 右がわを なぞる → 右がわでも 左右に動くか(2026-11-17 から 画面どこでも 動かせる)/ ジャンプボタン → ジャンプするか
   4. 2本指: 左で なぞりながら 右でタップ → 両方 効くか
   5. 画面のいちばん下(LINE の案内がある所)で なぞる → 効くか
   6. プレイ中に 画面の向きを変える → 絵の大きさが ついてくるか
@@ -77,20 +77,24 @@ def run_device(p, port, name, w, h, ua, out, results):
     ev(TRACK)
     swipe(page, cdp, w * 0.35, h * 0.72, -90)
     t = tr(); r["左へなぞる"] = round(t["xmin"] - t["x0"], 2)
-    # 3. 右タップ
+    # 3. 右がわを なぞる / ジャンプボタン
     ev(TRACK)
-    touch(cdp, "touchStart", [(2, w * 0.8, h * 0.7)]); page.wait_for_timeout(60); touch(cdp, "touchEnd", [])
+    swipe(page, cdp, w * 0.75, h * 0.6, -90)
+    t = tr(); r["右がわを左へなぞる"] = (round(t["xmin"] - t["x0"], 2), "高さ", round(t["ymax"] - t["y0"], 2))
+    ev(TRACK)
+    bx = page.evaluate("(()=>{const r=document.getElementById('jumpBtn').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
+    touch(cdp, "touchStart", [(2, bx[0], bx[1])]); page.wait_for_timeout(60); touch(cdp, "touchEnd", [])
     page.wait_for_timeout(500)
-    t = tr(); r["右タップでジャンプ(高さ)"] = round(t["ymax"] - t["y0"], 2)
+    t = tr(); r["ジャンプボタン(高さ)"] = round(t["ymax"] - t["y0"], 2)
     # 4. 2本指
     ev(TRACK)
     x0, y = w * 0.2, h * 0.75
     touch(cdp, "touchStart", [(1, x0, y)])
     for k in range(1, 6):
         page.wait_for_timeout(30); touch(cdp, "touchMove", [(1, x0 + 12 * k, y)])
-    touch(cdp, "touchStart", [(1, x0 + 60, y), (2, w * 0.8, h * 0.6)])
+    touch(cdp, "touchStart", [(1, x0 + 60, y), (2, w * 0.8, h * 0.4)])
     for k in range(6, 11):
-        page.wait_for_timeout(30); touch(cdp, "touchMove", [(1, x0 + 12 * k, y), (2, w * 0.8, h * 0.6)])
+        page.wait_for_timeout(30); touch(cdp, "touchMove", [(1, x0 + 12 * k, y), (2, w * 0.8, h * 0.4)])
     touch(cdp, "touchEnd", [(1, x0 + 120, y)])  # 右の指をはなす
     page.wait_for_timeout(400)
     touch(cdp, "touchEnd", [])

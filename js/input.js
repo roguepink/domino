@@ -1,11 +1,11 @@
 /* input.js — さわった・押したを、sim に渡す形 { steer: -1..1, jump: true/false } にする。(UI・UX係)
  *
- * スマホ:
- *   - 画面の左がわ(はば 58%)を さわったまま 左右になぞる = 左右に動く。
- *     「指にすいつく」方式: 指を動かした長さ = 主人公が動く長さ(画面の左がわ いっぱい ≒ コースのはば)。
- *     指を止めれば 主人公も止まる。小さく動かしても 少しだけ動く。行きすぎない(先を読んで ブレーキ)。
+ * スマホ(2026-11-17 ノブさん「左右に動かしたいのにジャンプしかしない」で 作り直し):
+ *   - 画面の どこでも、さわったまま 左右になぞる = 左右に動く(前は 左 58% だけで、右がわは さわるとジャンプだった。
+ *     右手の親指で 右がわを なぞると ジャンプばかりで 進まなかった)。
+ *     「指にすいつく」方式: 指を動かした長さ = 主人公が動く長さ。指を止めれば 主人公も止まる。
  *     かべで止まったときは、目標が 主人公の近くまで もどる(はなれたまま 急に飛ばない)。
- *   - 右がわを タップ = ジャンプ(さわった瞬間)。左で動かしながら 右でジャンプ(2本指)も OK。
+ *   - ジャンプ = 右下の ジャンプボタン(ui.js)/ 指を すばやく 上に はらう / なぞっている間に もう1本の指で タップ
  *   - 指の下に うすい目印(輪 = 指、点 = 主人公が今いる所。追いつくと重なる)
  * パソコン: ← → / A D で左右、スペース・↑・W でジャンプ、Esc・P でポーズ
  *
@@ -17,8 +17,9 @@ var DOMINO = window.DOMINO = window.DOMINO || {};
 
 DOMINO.Input = (function () {
   var el = null, enabled = false;
-  var SPLIT = 0.58;          // 左がわの はば(この割合より左が 左右の操作)
-  var steerTouch = null;     // { id, x0, x, tx(目標の x m), lastX }
+  var SPLIT = 0.58;          // 指の効きの目安(前は 左がわの はば。今は 画面どこでも 動かせる)
+  var FLICK_PX = 42, FLICK_MS = 260;   // この長さ(px)を この時間(ミリ秒)より早く 上に はらうと ジャンプ
+  var steerTouch = null;     // { id, x0, x, y, hist(少し前までの指の動き), flicked(上にはらってジャンプした), tx(目標の x m) }
   var jumpQueued = false;
   var keys = {};
   var mark = null, markRing = null, markDot = null;
@@ -34,18 +35,25 @@ DOMINO.Input = (function () {
   // ---- 指が ふれた・動いた・はなれた(pointer と touch の両方から呼ぶ) ----
   function down(id, x, y) {
     if (!enabled) return false;
-    var w = window.innerWidth;
-    if (x < w * SPLIT && !steerTouch) {
+    if (!steerTouch) {
       var s = simNow();
-      steerTouch = { id: id, x0: x, x: x, y: y, tx: s ? s.p.x : 0 };
+      steerTouch = { id: id, x0: x, x: x, y: y, hist: [[x, y, Date.now()]], flicked: false, tx: s ? s.p.x : 0 };
       showMark(x, y);
-    } else jumpQueued = true;
+    } else jumpQueued = true;   // なぞっている間の 2本目の指 = ジャンプ
     return true;
   }
   function move(id, x, y) {
     if (!steerTouch || id !== steerTouch.id) return;
     var dx = x - steerTouch.x;
     steerTouch.x = x; steerTouch.y = y;
+    // すばやく 上に はらった = ジャンプ(1回さわるごとに 1回だけ。横に なぞるのとは 向きで 見分ける)
+    if (!steerTouch.flicked) {
+      var now = Date.now(), hs = steerTouch.hist;
+      hs.push([x, y, now]);
+      while (hs.length > 2 && now - hs[0][2] > FLICK_MS) hs.shift();   // 少し前(0.26秒)までの 指の動きだけ 見る
+      var rise = hs[0][1] - y, side = Math.abs(x - hs[0][0]);
+      if (rise > FLICK_PX && rise > side * 1.4) { steerTouch.flicked = true; jumpQueued = true; }
+    }
     // 目標の位置を 指の動いた分だけ ずらす
     var H = halfW();
     steerTouch.tx = Math.max(-H, Math.min(H, steerTouch.tx + dx / pxPerM()));
@@ -57,6 +65,8 @@ DOMINO.Input = (function () {
   // ---- pointer ----
   function onPDown(e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // ほかに さわっている指が ない(最初の指)のに 前の指が 残っていたら、はなしたのを 取りこぼしている。忘れる
+    if (e.isPrimary && steerTouch) steerTouch = null;
     if (down(e.pointerId, e.clientX, e.clientY) && e.cancelable) e.preventDefault();
     try { if (el.setPointerCapture) el.setPointerCapture(e.pointerId); } catch (er) {}
   }
@@ -66,6 +76,7 @@ DOMINO.Input = (function () {
   // ---- touch(PointerEvent がない端末だけ) ----
   function onTStart(e) {
     var used = false;
+    if (e.touches && e.touches.length === e.changedTouches.length) steerTouch = null;   // 上と同じ(取りこぼしを 忘れる)
     for (var i = 0; i < e.changedTouches.length; i++) { var t = e.changedTouches[i]; if (down(t.identifier, t.clientX, t.clientY)) used = true; }
     if (used && e.cancelable) e.preventDefault();
   }

@@ -316,8 +316,9 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 #tip .half { position: absolute; top: 0; bottom: 0; }
-#tip .half.l { left: 0; width: 58%; background: rgba(63,183,255,.16); border-right: 3px dashed rgba(255,255,255,.7); }
-#tip .half.r { right: 0; width: 42%; background: rgba(255,210,63,.14); }
+#tip .half.l { left: 0; width: 100%; background: rgba(63,183,255,.14); }
+#tip .half.r { right: 0; width: 64%; }
+#tip .half.l p { top: calc(62% - 92px); }
 #tip .finger { position: absolute; top: 62%; left: 50%; font-size: 52px; margin-left: -26px; line-height: 1; filter: drop-shadow(0 3px 0 rgba(42,26,74,.7)); }
 #tip .finger.swipe { animation: swipe 1.6s ease-in-out infinite; }
 #tip .finger.tap { animation: tapF2 1s ease-in-out infinite; }
@@ -627,7 +628,7 @@ button:focus-visible { outline: 3px solid #3fb7ff; outline-offset: 3px; }
 /* 指の案内を ボタンに あわせる */
 #tip .half.r .finger.tap { top: auto; bottom: calc(var(--safe-b) + 112px); left: auto; right: 46px; margin-left: 0; }
 #tip .half.r .ripple { top: auto; bottom: calc(var(--safe-b) + 26px); left: auto; right: 18px; margin-left: 0; width: 92px; height: 92px; }
-#tip .half.r p { top: auto; bottom: calc(var(--safe-b) + 180px); }
+#tip .half.r p { top: auto; bottom: calc(var(--safe-b) + 176px); left: auto; right: 10px; text-align: right; font-size: 18px; }
 #tip p small { display: block; font-size: 13px; }
 /* むずかしさの しるし */
 .lvl { display: inline-block; font-size: 12px; vertical-align: 3px; background: #c9f2c0; color: #1f6a2a; border: 2px solid var(--ink); border-radius: 999px; padding: 0 8px; white-space: nowrap; }
